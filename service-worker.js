@@ -5,7 +5,7 @@
 
    Sempre que os arquivos do app forem republicados, suba o número da versão
    abaixo — isso invalida o cache antigo automaticamente. */
-const VERSAO = 'cr-v1';
+const VERSAO = 'cr-v2';
 const ARQUIVOS_DO_SHELL = [
   './',
   './index.html',
@@ -15,6 +15,12 @@ const ARQUIVOS_DO_SHELL = [
   './icons/icon-maskable-512.png',
   './dados.js',
   './config.js',
+  './privacidade.html',
+  './fonts/fonts.css',
+  './fonts/outfit-latin-wght-normal.woff2',
+  './fonts/plus-jakarta-sans-latin-wght-normal.woff2',
+  './fonts/plus-jakarta-sans-latin-wght-italic.woff2',
+  './fonts/space-grotesk-latin-wght-normal.woff2',
 ];
 
 self.addEventListener('install', (evento) => {
@@ -53,8 +59,8 @@ self.addEventListener('fetch', (evento) => {
       )
     );
   } else {
-    // Fontes do Google (cross-origin): tenta a rede primeiro; sem rede, usa o
-    // que já estiver em cache (a UI já teria a fonte carregada da visita anterior).
+    // Outras origens (ex.: lista de prestadores do servidor): tenta a rede primeiro; sem rede, usa o
+    // que já estiver em cache (a última lista que chegou).
     evento.respondWith(
       fetch(request)
         .then((resp) => {

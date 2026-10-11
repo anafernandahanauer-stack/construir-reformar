@@ -14,7 +14,11 @@ Uma iniciativa VZP Engenharia / Base Empreendimentos.
 construir-reformar/
 ├── index.html          → o site inteiro (HTML + CSS + JavaScript em um único arquivo)
 ├── dados.js            → taxonomia e motor de busca por sinônimos (gerado a partir de motor/)
-├── config.js           → ÚNICO arquivo a editar: para onde vai o botão "Cadastrar meu negócio"
+├── config.js           → ÚNICO arquivo a editar: canal de cadastro e lista de fichas reais
+├── INTEGRACAO.md       → como ligar a vitrine ao sistema Flask (rota pronta para colar)
+├── privacidade.html    → o que a vitrine coleta (nada) e o que fica no aparelho
+├── 404.html            → página de endereço inexistente, com volta ao início
+├── fonts/              → Outfit, Plus Jakarta Sans e Space Grotesk servidas pelo próprio site (licença OFL)
 ├── manifest.json       → ficha de identidade do app para o sistema poder "instalá-lo"
 ├── service-worker.js   → permite abrir o app já instalado mesmo sem internet
 ├── icons/              → ícone do app em todos os tamanhos + imagem de compartilhamento (og-image)
@@ -57,6 +61,19 @@ Abra `config.js` e preencha **um** dos três campos — o primeiro preenchido ve
 
 Com os três vazios, o botão aparece desativado com a nota “Os cadastros abrem em breve”.
 
+## Ligar as fichas reais
+
+`prestadoresUrl` no `config.js` aponta para uma lista JSON de prestadores. Com ela, as
+fichas de exemplo somem e entram as reais; se o servidor não responder, o site segue com
+os exemplos. O formato e uma rota pronta para o Flask estão em **INTEGRACAO.md** — testada
+contra o sistema real: 12 de 12 prestadores carregados, busca “luz” abrindo Elétrica Sorriso.
+
+## Como a busca leva até o prestador
+
+Digite → a categoria certa aparece → toque nela e a lista de prestadores já vem filtrada.
+Categoria sem ninguém mostra o convite para se cadastrar ou indicar alguém pelo WhatsApp.
+Cada categoria tem endereço próprio para compartilhar: `…/#cat=eletricista`.
+
 ## Como instalar como aplicativo (PWA)
 
 - **Chrome ou Edge no computador:** botão **Instalar app** no topo do site (ou o ícone na barra de endereço).
@@ -73,14 +90,19 @@ Com os três vazios, o botão aparece desativado com a nota “Os cadastros abre
 
 Todos dão HTTPS, que é pré-requisito do navegador para instalar o app.
 
-**Ao republicar:** suba a versão em `service-worker.js` (`cr-v1` → `cr-v2`). Isso invalida o cache de quem já instalou.
+**Ao republicar:** suba a versão em `service-worker.js` (hoje `cr-v2` → `cr-v3`). Isso invalida o cache de quem já instalou.
+
+## Privacidade
+
+A vitrine não usa cookies, não envia a busca para servidor nenhum e não carrega nada de
+terceiros: fontes, ícones e scripts vêm do próprio endereço. Detalhes em `privacidade.html`.
 
 ## Próximos passos para virar produto completo
 
 Em ordem de prioridade:
 
-1. **Ligar o cadastro** — preencher `config.js` (5 minutos). Sem isso, o site funciona, mas não capta prestador.
-2. **Fichas reais no lugar dos exemplos** — a lista `PREST` em `index.html` passa a vir do sistema com servidor (`vzp-construir-reformar-app-web`, Flask + Postgres), que já tem cadastro, login, painel do prestador e moderação.
+1. **Decidir o encaixe com o Flask** — INTEGRACAO.md traz os dois caminhos; o recomendado leva uma rota colada e dois campos no `config.js`.
+2. **Ligar cadastro e fichas reais** — `cadastroUrl` e `prestadoresUrl` no `config.js`.
 3. **Avaliação em 5 métricas** — Atendimento, Qualidade e quantidade, Inspeção e segurança, Resolveu a demanda, Indicaria. O layout está pronto; a gravação e a moderação são do servidor.
 4. **Domínio próprio** — e, com ele, o endereço absoluto da imagem de compartilhamento (`og:image`) para o link ficar bonito no WhatsApp.
 5. **Termos de uso e política de privacidade (LGPD)** — obrigatórios antes de publicar dados de pessoas reais.

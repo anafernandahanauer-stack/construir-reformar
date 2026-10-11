@@ -13,12 +13,14 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="Construir & Reformar — quem faz sua obra acontecer">
 <meta property="og:description" content="Escreva do seu jeito o que precisa e encontre o profissional certo da construção em Mato Grosso.">
-<meta property="og:image" content="icons/og-image.png">
+<meta property="og:image" content="https://anafernandahanauer-stack.github.io/construir-reformar/icons/og-image.png">
+<meta property="og:url" content="https://anafernandahanauer-stack.github.io/construir-reformar/">
+<link rel="canonical" href="https://anafernandahanauer-stack.github.io/construir-reformar/">
 <meta property="og:locale" content="pt_BR">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/plus-jakarta-sans-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/outfit-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="fonts/fonts.css">
 <script>
 // antes de pintar: respeita o sistema, e a escolha manual tem prioridade.
 // sessionStorage: a escolha vale para a visita, sem guardar dados da pessoa.
@@ -717,6 +719,39 @@ function tema(){
     html{scroll-behavior:auto}
   }
   /* ---- vitrine pública ---- */
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .pular{position:absolute;left:12px;top:-60px;z-index:100;background:var(--azul);color:var(--sobre-azul);padding:10px 14px;border-radius:var(--raio);font-family:var(--acao);font-size:13px;text-decoration:none}
+  .pular:focus{top:12px}
+  .chip:focus-visible,.gbtn:focus-visible,.gcat:focus-visible,.hit:focus-visible,.fb:focus-visible,.tema:focus-visible,.menu-btn:focus-visible,.menu a:focus-visible,.topo:focus-visible,.rede:focus-visible,.btn-whats:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+  button.hit{width:100%;text-align:left;background:none;border:none;border-bottom:1px solid var(--linha);font:inherit;color:inherit;cursor:pointer;border-radius:var(--raio-p);transition:background .15s}
+  button.hit:hover{background:var(--papel2)}
+  button.hit:active{transform:scale(.99)}
+  .hit-ir{margin-left:auto;font-family:var(--acao);font-size:12.5px;font-weight:600;color:var(--laranja-txt);white-space:nowrap;align-self:center}
+  .hit-dica{font-size:12px;color:var(--fraco);margin-top:10px}
+  button.gcat{background:none;border:none;border-bottom:1px solid var(--papel2);text-align:left;font:inherit;font-size:14px;color:inherit;cursor:pointer;width:100%;transition:color .15s}
+  button.gcat:hover{color:var(--laranja-txt)}
+  .fb.cat{border-color:var(--laranja-btn)}
+  .fvazio-acoes{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+  .fvazio-acoes .btn{max-width:none}
+  .card:has(.selo.exemplo){border-style:dashed}
+  .menu-btn{display:none;width:34px;height:34px;border-radius:var(--raio);border:1px solid var(--linha);background:var(--superficie);cursor:pointer;flex:0 0 auto;position:relative}
+  .menu-btn span{position:absolute;left:9px;right:9px;height:1.6px;background:var(--tinta);border-radius:2px}
+  .menu-btn span::before,.menu-btn span::after{position:absolute;left:0;right:0;height:1.6px;background:var(--tinta);border-radius:2px;content:"";transition:transform .2s}
+  .menu-btn span{top:16px}.menu-btn span::before{top:-5px}.menu-btn span::after{top:5px}
+  @media(max-width:640px){.fbar{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:4px;-webkit-overflow-scrolling:touch}.fbar::-webkit-scrollbar{display:none}.fbar .fb,.fbar .fbar-rot{flex:0 0 auto}}
+  .menu-btn[aria-expanded=true] span{background:transparent}
+  .menu-btn[aria-expanded=true] span::before{transform:translateY(5px) rotate(45deg)}
+  .menu-btn[aria-expanded=true] span::after{transform:translateY(-5px) rotate(-45deg)}
+  .menu{display:flex;flex-direction:column;padding:6px 20px 14px;border-top:1px solid var(--linha);background:rgba(var(--papel-rgb),.98)}
+  .menu[hidden]{display:none}
+  .menu a{padding:12px 4px;border-bottom:1px solid var(--papel2);color:var(--tinta);text-decoration:none;font-family:var(--acao);font-size:15px}
+  .menu a:last-child{border-bottom:none;color:var(--laranja-txt);font-weight:600}
+  @media(max-width:820px){.menu-btn{display:block}}
+  @media(min-width:821px){.menu{display:none!important}}
+  @media(max-width:400px){.navlinks{display:none!important}.nav-in{gap:8px}.logo{margin-right:auto}}
+  .topo{position:fixed;right:16px;bottom:16px;z-index:60;background:var(--superficie);color:var(--azul);border:1px solid var(--linha);border-radius:999px;padding:9px 14px;font-family:var(--acao);font-size:12.5px;font-weight:600;text-decoration:none;box-shadow:0 6px 18px -8px rgba(var(--sombra),.35)}
+  .topo[hidden]{display:none}
+  .fnote a{color:inherit}
   .selo.exemplo{color:var(--cinza);background:var(--papel2);border-color:var(--linha)}
   .btn-whats.inativo{opacity:.55;cursor:default;pointer-events:none}
   .cad{display:flex;flex-direction:column;align-items:flex-start;gap:12px;margin-top:8px}
@@ -731,6 +766,7 @@ function tema(){
 </style>
 </head>
 <body>
+<a class="pular" href="#busca">Pular para a busca</a>
 
 <!-- faixas de cobogo que preenchem a sobra lateral em telas largas -->
 <div class="grade e" aria-hidden="true"></div>
@@ -750,9 +786,15 @@ function tema(){
     <a class="btn" href="#cadastro">Cadastrar meu negócio</a>
     <button class="btn sec instalar" id="instalar" hidden>Instalar app</button>
   </div>
+  <button class="menu-btn" id="menu-btn" aria-expanded="false" aria-controls="menu" aria-label="Abrir menu"><span></span></button>
   <button class="tema" id="tema" onclick="tema()" aria-label="Alternar modo claro e escuro"
           title="Modo claro / escuro"></button>
-</div></nav>
+</div>
+  <div class="menu" id="menu" hidden>
+    <a href="#busca">Buscar</a><a href="#grupos">Categorias</a><a href="#cards">Prestadores</a>
+    <a href="#como">Como funciona</a><a href="#proposito">Propósito</a><a href="#cadastro">Cadastrar meu negócio</a>
+  </div>
+</nav>
 
 <header class="wrap">
   <div class="eyebrow">Diretório de obra · Mato Grosso</div>
@@ -763,9 +805,10 @@ function tema(){
 
   <div class="searchbox" id="busca">
     <div class="sfield">
-      <input id="q" type="text" placeholder="Digite o que precisa. Ex.: luz, cano, não gela"
+      <label class="sr" for="q">O que você precisa?</label>
+      <input id="q" type="search" enterkeyhint="search" placeholder="Digite o que precisa. Ex.: luz, cano, não gela"
              autocomplete="off">
-      <button class="sbtn" onclick="go()">Buscar</button>
+      <button class="sbtn" onclick="go(true)">Buscar</button>
     </div>
     <div class="hint">
       <span>Experimente:</span>
@@ -799,8 +842,8 @@ function tema(){
     <h2>A ficha <em>completa</em>, em dois segundos</h2>
     <p class="sub">Cada ficha traz marca e responsável, a frase do próprio prestador,
     avaliação em cinco pontos, escopo técnico, endereço e todos os canais de contato.
-    <b>Estamos abrindo os cadastros:</b> as fichas abaixo são exemplos de como o seu
-    negócio vai aparecer.</p>
+    <span id="cards-aviso"><b>Estamos abrindo os cadastros:</b> as fichas abaixo são exemplos de como o seu
+    negócio vai aparecer.</span></p>
   </div>
 
   <!-- filtros: categoria por grupo + o de ofertas, sutil e opcional -->
@@ -923,20 +966,23 @@ function tema(){
 
 <footer class="wrap">
   <p class="fnote"><b>Construir &amp; Reformar</b><br>
-  Uma iniciativa VZP Engenharia / Base Empreendimentos<br>
+  Uma iniciativa VZP Engenharia / Base Empreendimentos ·
+  <a href="privacidade.html">Privacidade</a><br>
   Foco atual em Mato Grosso, com indicação de indústrias e projetistas de fora<br>
   <span style="color:var(--fraco)">Fichas marcadas como exemplo são ilustrativas.</span></p>
 </footer>
 
 </div><!-- /canvas -->
+<a class="topo" id="topo" href="#" aria-label="Voltar ao topo" hidden>↑ Topo</a>
 
+<script src="config.js"></script>
 <script src="dados.js"></script>
 <script>
 function setq(t){document.getElementById('q').value=t;go()}
 document.getElementById('q').addEventListener('input',go);
-document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter')go()});
+document.getElementById('q').addEventListener('keydown',e=>{if(e.key==='Enter')go(true)});
 
-function go(){
+function go(enter){
   const q=document.getElementById('q').value, box=document.getElementById('res');
   if(!q.trim()){box.innerHTML='';return}
   const r=buscar(q);
@@ -947,22 +993,25 @@ function go(){
        ' Tente uma palavra mais simples, como "luz" ou "cano".')+'</div>';
     return}
   box.innerHTML='<div class="rhead">'+r.length+(r.length>1?' categorias':' categoria')+' encontrada'+(r.length>1?'s':'')+'</div>'+
-    r.map((h,i)=>'<div class="hit" style="animation-delay:'+(i*.04)+'s">'+
+    r.map((h,i)=>'<button class="hit" style="animation-delay:'+(i*.04)+'s" onclick="verCat(\''+h.slug+'\')">'+
       '<div class="hit-n">'+String(i+1).padStart(2,'0')+'</div>'+
       '<div class="hit-b"><div class="hit-cat">'+esc(h.label)+'</div>'+
       '<div class="hit-g">Grupo '+h.grupo_n+' · '+esc(h.grupo)+'</div>'+
-      '</div></div>').join('');
+      '</div><div class="hit-ir">'+esc(rotuloQtd(h.slug))+' →</div></button>').join('')+
+    '<div class="hit-dica">Toque numa categoria para ver quem atende.</div>';
+  if(enter && r.length===1) verCat(r[0].slug);
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 
 // grupos
+const L2S=Object.fromEntries(Object.entries(CATS).map(([k,v])=>[v.label,k]));
 document.getElementById('gwrap').innerHTML=DADOS.grupos.map((g,i)=>
   '<div class="gitem'+(i<2?' open':'')+'">'+
-  '<button class="gbtn" onclick="this.parentNode.classList.toggle(\'open\')">'+
+  '<button class="gbtn" aria-expanded="'+(i<2)+'" onclick="var o=this.parentNode.classList.toggle(\'open\');this.setAttribute(\'aria-expanded\',o)">'+
   '<span class="gn">0'+g.n+'</span><span class="gname">'+esc(g.titulo)+'</span>'+
   '<span class="gcount">'+g.itens.length+' itens</span><span class="gicon">+</span></button>'+
-  '<div class="gbody"><div class="glist">'+g.itens.map(c=>'<div class="gcat">'+esc(c.label)+
-  '</div>').join('')+'</div></div></div>').join('');
+  '<div class="gbody"><div class="glist">'+g.itens.map(c=>'<button class="gcat" onclick="verCat(\''+(L2S[c.label]||'')+'\')">'+esc(c.label)+
+  '</button>').join('')+'</div></div></div>').join('');
 
 // ==================== 03 — cards de prestador ====================
 // Ficha completa conforme a diretriz 5: titulo Marca (Responsavel), slogan proprio,
@@ -973,7 +1022,7 @@ document.getElementById('gwrap').innerHTML=DADOS.grupos.map((g,i)=>
 const METRICAS=['Atendimento','Qualidade e quantidade','Inspeção e segurança',
                 'Resolveu a demanda','Indicaria'];
 
-const PREST=[
+let PREST=[
  // FICHAS DE EXEMPLO — marcas fictícias, só para mostrar como a ficha fica.
  // Quando houver cadastro real, esta lista vem do servidor (ver README).
  {slug:'eletricista', exemplo:true, marca:'Exemplo Elétrica', resp:'Responsável', cidade:'Sua cidade/MT',
@@ -1031,13 +1080,13 @@ function cardHTML(p){
       '</div></div></div>';
   }
 
-  const m=media(p.notas);
+  const m=p.soMedia?Number(p.media)||0:media(p.notas);
   // titulo no padrao Marca (Responsavel) — o parentese so entra quando ajuda
   const titulo=esc(p.marca)+(p.resp?' <span>('+esc(p.resp)+')</span>':'');
 
   const metricas=METRICAS.map((rot,i)=>{
     const v=p.notas[i];
-    const sem=!p.n;
+    const sem=!p.n||p.soMedia;
     return '<div class="aval-l"><span class="aval-rot">'+(i+1)+'. '+esc(rot)+'</span>'+
       '<span class="aval-bar"><i style="width:'+(sem?0:(v/5*100).toFixed(0))+'%"></i></span>'+
       '<span class="aval-v">'+(sem?'—':v.toFixed(1))+'</span></div>';
@@ -1059,7 +1108,7 @@ function cardHTML(p){
     '<div class="card-body">'+
       '<h3 class="card-t">'+titulo+'</h3>'+
       '<div class="card-s">'+esc(c.label)+' · '+esc(p.cidade)+'</div>'+
-      '<p class="card-slogan">“'+esc(p.slogan)+'”</p>'+
+      (p.slogan?'<p class="card-slogan">“'+esc(p.slogan)+'”</p>':'')+
       (p.voucher?'<div class="card-voucher">'+IC.tag+'<span><b>Oferta:</b> '+
         esc(p.voucher)+'</span></div>':'')+
       '<div class="tags">'+(c.tags||[]).slice(0,5).map(t=>'<span class="tag">'+esc(t)+'</span>').join('')+'</div>'+
@@ -1069,10 +1118,11 @@ function cardHTML(p){
         '<span class="aval-n">'+p.n+' avaliações<br>da obra</span></div>':
         '<div class="aval-top"><span class="aval-n" style="text-align:left">A média aparece aqui depois das primeiras avaliações de clientes.</span></div>')+
         '<div class="aval-lista">'+metricas+'</div>'+
-        (p.n?'<div class="aval-ind">Indicariam este profissional: <b>'+p.indica+'%</b></div>':'')+
+        (p.n&&p.indica?'<div class="aval-ind">Indicariam este profissional: <b>'+p.indica+'%</b></div>':'')+
+        (p.n&&p.soMedia?'<div class="aval-ind">As cinco métricas aparecem conforme novas avaliações chegam.</div>':'')+
       '</div>'+
-      '<div class="card-espec"><b>Escopo / CNAE '+esc(p.cnae)+'</b>'+esc(p.escopo)+'</div>'+
-      '<div class="card-end">'+IC.pin+'<span>'+esc(p.end)+'</span></div>'+
+      (p.escopo||p.cnae?'<div class="card-espec"><b>Escopo'+(p.cnae?' / CNAE '+esc(p.cnae):'')+'</b>'+esc(p.escopo)+'</div>':'')+
+      (p.end?'<div class="card-end">'+IC.pin+'<span>'+esc(p.end)+'</span></div>':'')+
       '<hr class="linha-azul">'+
       '<div class="card-contatos">'+
         (p.whats?'<a class="btn-whats" href="https://wa.me/'+esc(p.whats)+'" rel="noopener">'+
@@ -1084,15 +1134,17 @@ function cardHTML(p){
 }
 
 // ---- filtros do diretorio: grupo + ofertas (diretriz 7) ----
-const FILTRO={grupo:'todos', oferta:false};
+const FILTRO={grupo:'todos', oferta:false, cat:null};
+let REAIS=false;
 
-function fGrupo(v){FILTRO.grupo=v;renderCards()}
+function fGrupo(v){FILTRO.grupo=v;FILTRO.cat=null;renderCards()}
 function fOferta(){FILTRO.oferta=!FILTRO.oferta;renderCards()}
 
 function renderCards(){
   const lista=PREST.filter(p=>{
     const c=CATS[p.slug]; if(!c)return false;
-    if(FILTRO.grupo!=='todos' && String(c.grupo_n)!==FILTRO.grupo) return false;
+    if(FILTRO.cat && p.slug!==FILTRO.cat) return false;
+    if(!FILTRO.cat && FILTRO.grupo!=='todos' && String(c.grupo_n)!==FILTRO.grupo) return false;
     if(FILTRO.oferta && !p.voucher) return false;
     return true;
   });
@@ -1103,7 +1155,8 @@ function renderCards(){
 
   document.getElementById('fbar').innerHTML=
     '<span class="fbar-rot">Filtrar:</span>'+
-    '<button class="fb'+(FILTRO.grupo==='todos'?' on':'')+'" onclick="fGrupo(\'todos\')">'+
+    (FILTRO.cat?'<button class="fb on cat" onclick="limparCat()" aria-label="Remover filtro de categoria">'+esc(CATS[FILTRO.cat].label)+' <span aria-hidden="true">×</span></button>':'')+
+    '<button class="fb'+(FILTRO.grupo==='todos'&&!FILTRO.cat?' on':'')+'" onclick="fGrupo(\'todos\')">'+
       'Todos <span class="fb-c">'+PREST.length+'</span></button>'+
     gs.map(n=>{
       const g=DADOS.grupos.find(x=>x.n===n), qtd=PREST.filter(p=>CATS[p.slug].grupo_n===n).length;
@@ -1114,15 +1167,68 @@ function renderCards(){
       IC.tag+'Com ofertas e vouchers <span class="fb-c">'+nOf+'</span></button>';
 
   document.getElementById('cards-grid').innerHTML=lista.map(cardHTML).join('');
+  const cadHref=document.getElementById('cad-btn')&&document.getElementById('cad-btn').getAttribute('href');
   document.getElementById('cards-vazio').innerHTML=lista.length?'':
+    (FILTRO.cat?
+    '<div class="fvazio"><b>Ainda não há '+esc(CATS[FILTRO.cat].label)+' cadastrado na região</b>'+
+    'O diretório está começando, e esta categoria espera o primeiro nome. '+
+    'Se você é do ramo, o cadastro é gratuito; se conhece alguém bom, mande este site para ele.'+
+    '<div class="fvazio-acoes"><a class="btn" href="'+(cadHref||'#cadastro')+'"'+(cadHref?'':' aria-disabled="true"')+'>Cadastrar nesta categoria</a>'+
+    '<a class="btn sec" href="https://wa.me/?text='+encodeURIComponent('Estão montando um diretório de obra em MT e falta '+CATS[FILTRO.cat].label+'. Cadastro grátis: '+location.href.split('#')[0])+'" rel="noopener">Indicar alguém no WhatsApp</a>'+
+    '<button class="btn sec" onclick="limparCat()">Ver todas as fichas</button></div></div>':
     '<div class="fvazio"><b>Nenhum resultado com esse filtro</b>'+
-    'Nesta amostra, o grupo escolhido não tem prestador com oferta ativa. '+
-    'Tela vazia aqui é informação: mostra onde o diretório ainda precisa crescer.</div>';
+    'Ainda não há prestador com esse recorte. Tela vazia aqui é informação: mostra onde o diretório precisa crescer.</div>');
 }
 renderCards();
 
+function rotuloQtd(slug){
+  const n=PREST.filter(p=>p.slug===slug && !p.vaga && (REAIS || !p.exemplo)).length;
+  return n? (n+(n>1?' prestadores':' prestador')) : 'Ver categoria';
+}
+function verCat(slug){
+  if(!slug||!CATS[slug])return;
+  FILTRO.cat=slug; FILTRO.grupo='todos'; FILTRO.oferta=false; renderCards();
+  const el=document.getElementById('cards'); el.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
+  try{history.replaceState(null,'','#cat='+slug)}catch(e){}
+}
+function limparCat(){FILTRO.cat=null;renderCards();try{history.replaceState(null,'','#cards')}catch(e){}}
+
+// ---- fichas reais: se o CONFIG apontar uma lista, ela substitui os exemplos ----
+(function(){
+  const C=window.CONFIG||{};
+  if(C.prestadoresUrl){
+    fetch(C.prestadoresUrl,{headers:{'Accept':'application/json'}})
+      .then(r=>{if(!r.ok)throw 0;return r.json()})
+      .then(d=>{
+        const lista=(Array.isArray(d)?d:(d.prestadores||[])).filter(p=>p&&CATS[p.slug]&&p.marca);
+        if(!lista.length)return;
+        lista.forEach(p=>{
+          const cinco=Array.isArray(p.notas)&&p.notas.length===5;
+          p.notas=cinco?p.notas.map(Number):[0,0,0,0,0]; p.soMedia=!cinco&&p.media!=null;
+          p.n=Number(p.n)||0; p.indica=Number(p.indica)||0; p.exemplo=false;
+          ['slogan','escopo','cnae','end'].forEach(k=>{if(p[k]==null)p[k]=''});
+        });
+        PREST=lista; REAIS=true;
+        const av=document.getElementById('cards-aviso'); if(av) av.textContent='Fichas preenchidas pelos próprios prestadores. Avaliações vêm de clientes e passam por moderação.';
+        renderCards(); if(document.getElementById('q').value.trim()) go();
+      }).catch(()=>{});
+  }
+  const m=/^#cat=([a-z0-9-]+)/.exec(location.hash); if(m) setTimeout(()=>verCat(m[1]),0);
+})();
+
+// ---- menu do celular e botão de voltar ao topo ----
+(function(){
+  const b=document.getElementById('menu-btn'), m=document.getElementById('menu');
+  function fechar(){m.hidden=true;b.setAttribute('aria-expanded','false');b.setAttribute('aria-label','Abrir menu')}
+  b.addEventListener('click',()=>{const abre=m.hidden;m.hidden=!abre;b.setAttribute('aria-expanded',String(abre));b.setAttribute('aria-label',abre?'Fechar menu':'Abrir menu');if(abre)m.querySelector('a').focus()});
+  m.addEventListener('click',e=>{if(e.target.tagName==='A')fechar()});
+  addEventListener('keydown',e=>{if(e.key==='Escape'&&!m.hidden){fechar();b.focus()}});
+  const t=document.getElementById('topo');
+  addEventListener('scroll',()=>{t.hidden=scrollY<900},{passive:true});
+  t.addEventListener('click',e=>{e.preventDefault();scrollTo({top:0,behavior:'smooth'});document.getElementById('q').focus({preventScroll:true})});
+})();
+
 </script>
-<script src="config.js"></script>
 <script>
 // ---- cadastro: aponta para onde o CONFIG mandar (formulário, WhatsApp ou e-mail) ----
 (function(){
