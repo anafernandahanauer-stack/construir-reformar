@@ -16,7 +16,7 @@ py -m venv .venv
 Acesse <http://localhost:5000>.
 
 Na primeira execução o banco (`hub.db`) é criado e populado com categorias, a
-região Sorriso/MT e prestadores de exemplo. Para recomeçar do zero, apague `hub.db`.
+região Sorriso/MT e prestadores de exemplo (só no SQLite local). Para recomeçar do zero, apague `hub.db`.
 
 Fotos de perfil/portfólio e da indicação só funcionam com uma conta gratuita no
 [Cloudinary](https://cloudinary.com) — sem a env var `CLOUDINARY_URL`, o app roda
@@ -50,12 +50,11 @@ set CLOUDINARY_URL=cloudinary://SUA_CHAVE_AQUI
 - **Indicar no WhatsApp**: compartilhar o perfil de um prestador direto para os contatos
 - **PWA**: instalável no celular (ícone, manifest, funciona como app)
 
-### Contas de teste (troque em produção!)
-| Papel | E-mail | Senha |
-|---|---|---|
-| Admin (equipe VZP) | `admin@construireformar.local` | `admin123` |
-| Prestador (demo) | `demo@construireformar.local` | `demo123` |
-| Cliente/indicação (demo) | `cliente@construireformar.local` | `demo123` |
+### Contas de teste (só no computador local)
+Rodando localmente (SQLite), o seed cria contas de demonstração para testar admin, prestador e
+cliente — as credenciais estão em `seed.py`. **Em produção (Postgres) nada disso existe:** o admin
+vem de `ADMIN_EMAIL` / `ADMIN_SENHA`, os dados de demonstração não entram, e com `SEED_DEMO=0`
+os que já existirem são removidos.
 
 Admin entra em **/admin**; prestador em **/painel**; cliente só precisa estar logado para indicar.
 

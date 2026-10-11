@@ -234,7 +234,30 @@ def stats_aprovadas(prestador_id):
 @app.context_processor
 def inject_globals():
     return {"todas_categorias": categorias(), "todas_regioes": regioes(),
-            "usuario": usuario_atual(), "csrf_token": session.get("csrf", "")}
+            "usuario": usuario_atual(), "csrf_token": session.get("csrf", ""),
+            "legal": LEGAL}
+
+
+# ---------------------------------------------------------------- termos e privacidade (LGPD)
+# Versão dos textos: suba a data quando /termos ou /privacidade mudarem de conteúdo —
+# o aceite de cada conta guarda a versão que a pessoa leu.
+TERMOS_VERSAO = "2026-10-11"
+LEGAL = {
+    "controlador": os.environ.get("CONTROLADOR_NOME", "VZP Engenharia / Base Empreendimentos"),
+    "cnpj": os.environ.get("CONTROLADOR_CNPJ", "").strip(),
+    "contato": os.environ.get("CONTATO_PRIVACIDADE", "").strip(),
+    "versao": TERMOS_VERSAO,
+}
+
+
+def _aceitou_termos(form):
+    return form.get("aceite_termos") == "1"
+
+
+def _registrar_aceite(uid):
+    from datetime import datetime, timezone
+    db.execute("UPDATE usuarios SET aceite_termos_em = ?, aceite_termos_versao = ? WHERE id = ?",
+               (datetime.now(timezone.utc).isoformat(timespec="seconds"), TERMOS_VERSAO, uid))
 
 
 # ---------------------------------------------------------------- público
@@ -397,6 +420,9 @@ def cadastro():
         if not (nome and categoria_id and regiao_id and email and senha):
             flash("Preencha nome, categoria, região, e-mail e senha.", "erro")
             return render_template("cadastro.html", form=f)
+        if not _aceitou_termos(f):
+            flash("Para publicar sua ficha, é preciso aceitar os Termos de uso e a Política de privacidade.", "erro")
+            return render_template("cadastro.html", form=f)
         if len(senha) < 6:
             flash("A senha precisa ter ao menos 6 caracteres.", "erro")
             return render_template("cadastro.html", form=f)
@@ -421,6 +447,7 @@ def cadastro():
             "INSERT INTO usuarios (nome, email, senha_hash, papel, prestador_id) VALUES (?,?,?, 'prestador', ?)",
             (nome, email, generate_password_hash(senha), pid),
         )
+        _registrar_aceite(uid)
         session["usuario_id"] = uid
         flash("Cadastro realizado! Gerencie seu perfil por aqui.", "ok")
         return redirect(url_for("painel"))
@@ -437,6 +464,9 @@ def conta_cadastro():
         if not (nome and email and senha):
             flash("Preencha nome, e-mail e senha.", "erro")
             return render_template("conta_cadastro.html", form=f)
+        if not _aceitou_termos(f):
+            flash("Para criar a conta, é preciso aceitar os Termos de uso e a Política de privacidade.", "erro")
+            return render_template("conta_cadastro.html", form=f)
         if len(senha) < 6:
             flash("A senha precisa ter ao menos 6 caracteres.", "erro")
             return render_template("conta_cadastro.html", form=f)
@@ -447,6 +477,7 @@ def conta_cadastro():
             "INSERT INTO usuarios (nome, email, senha_hash, papel) VALUES (?,?,?, 'cliente')",
             (nome, email, generate_password_hash(senha)),
         )
+        _registrar_aceite(uid)
         session["usuario_id"] = uid
         flash("Conta criada! Agora você pode indicar e avaliar prestadores.", "ok")
         return redirect(url_for("index"))
@@ -456,6 +487,64 @@ def conta_cadastro():
 @app.route("/sobre")
 def sobre():
     return render_template("sobre.html")
+
+
+@app.route("/termos")
+def termos():
+    return render_template("termos.html")
+
+
+@app.route("/privacidade")
+def privacidade():
+    return render_template("privacidade.html")
+
+
+# ---------------------------------------------------------------- vitrine pública
+# A vitrine (repositório construir-reformar, no GitHub Pages) lê esta lista para
+# trocar as fichas de exemplo pelas reais. Só sai o que já é público no site:
+# nunca e-mail de login, senha, telefone fixo ou avaliação pendente.
+VITRINE_ORIGEM = os.environ.get("VITRINE_ORIGEM", "https://anafernandahanauer-stack.github.io").rstrip("/")
+
+# slug do Flask -> slug da taxonomia de 36 categorias da vitrine
+SLUG_VITRINE = {
+    "pedreiro": "pedreiro", "eletricista": "eletricista", "encanador": "encanador",
+    "pintor": "pintor", "marceneiro": "marceneiro", "serralheiro": "serralheiro",
+    "terraplenagem": "terraplenagem", "locacao": "locacao-equipamentos",
+    "gesso": "gesso-drywall", "engenharia": "projeto-engenharia",
+    "materiais": "materiais-construcao", "limpeza": "limpeza-pos-obra",
+}
+
+
+@app.route("/api/vitrine/prestadores.json")
+def api_vitrine_prestadores():
+    rows = db.query("""
+        SELECT p.id, p.nome, p.whatsapp, p.descricao, p.verificado,
+               c.slug AS categoria_slug, r.nome AS regiao_nome, r.uf AS regiao_uf,
+               COUNT(a.id) AS n, COALESCE(ROUND(AVG(a.nota),1),0) AS media
+        FROM prestadores p
+        JOIN categorias c ON c.id = p.categoria_id
+        LEFT JOIN regioes r ON r.id = p.regiao_id
+        LEFT JOIN avaliacoes a ON a.prestador_id = p.id AND a.status = 'aprovada'
+        GROUP BY p.id, c.id, r.id
+        ORDER BY p.verificado DESC, p.nome
+    """)
+    saida = []
+    for r in rows:
+        saida.append({
+            "slug": SLUG_VITRINE.get(r["categoria_slug"], r["categoria_slug"]),
+            "marca": r["nome"], "resp": None,
+            "cidade": f'{r["regiao_nome"]}/{r["regiao_uf"]}' if r["regiao_nome"] else "Mato Grosso",
+            "escopo": r["descricao"] or "",
+            "whats": re.sub(r"\D", "", r["whatsapp"] or "") or None,
+            "verif": bool(r["verificado"]),
+            "n": int(r["n"]), "media": float(r["media"]),
+            "url": url_for("prestador", pid=r["id"], _external=True),
+        })
+    resp = jsonify(saida)
+    resp.headers["Access-Control-Allow-Origin"] = VITRINE_ORIGEM
+    resp.headers["Vary"] = "Origin"
+    resp.headers["Cache-Control"] = "public, max-age=300"
+    return resp
 
 
 # ---------------------------------------------------------------- autenticação

@@ -29,4 +29,12 @@ services:
       - key: CLOUDINARY_URL          # opcional: sem isso, tudo funciona, só sem upload de foto
         sync: false
       - key: SEED_DEMO
-        value: "1"                   # "1" popula dados de exemplo; troque para "0" antes do lançamento real
+        value: "0"                   # "0" = produção limpa: remove os dados de demonstração do seed
+      - key: VITRINE_ORIGEM          # endereço da vitrine pública que pode ler /api/vitrine/prestadores.json
+        value: "https://anafernandahanauer-stack.github.io"
+      - key: CONTROLADOR_NOME        # quem responde pelos dados (LGPD) — aparece em /privacidade e /termos
+        value: "VZP Engenharia / Base Empreendimentos"
+      - key: CONTROLADOR_CNPJ        # você preenche no painel do Render
+        sync: false
+      - key: CONTATO_PRIVACIDADE     # e-mail para pedidos de titulares de dados (LGPD art. 18)
+        sync: false

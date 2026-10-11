@@ -39,14 +39,12 @@ git push -u origin main
 - **Plano free do Render**: o web service "dorme" após ~15 min sem acesso (a
   primeira visita depois disso demora alguns segundos). O Postgres free tem
   validade limitada — o Render avisa; dá para migrar para um plano pago quando validar.
-- **Antes do lançamento real** (com prestadores de verdade): no painel do web
-  service, mude a variável `SEED_DEMO` para `0` e apague os prestadores de
-  exemplo, para o site não misturar dados fictícios com reais.
 - **Atualizar o site depois**: basta `git push` — o Render redeploya sozinho.
   Como agora é Postgres, os dados **não** se perdem entre deploys.
 
-## Contas de demonstração (troque/apague em produção)
-| Papel | E-mail | Senha |
-|---|---|---|
-| Admin | definido em ADMIN_EMAIL / ADMIN_SENHA | (a que você escolher) |
-| Prestador demo | `demo@construireformar.local` | `demo123` |
+## Antes do lançamento real
+- `SEED_DEMO` já vem `0` no `render.yaml`: no próximo deploy, os prestadores, avaliações e contas
+  de demonstração criados pelo seed são removidos sozinhos (só eles — o filtro é nome **e** WhatsApp do seed).
+- Preencha no painel do Render: `CONTROLADOR_CNPJ` e `CONTATO_PRIVACIDADE` (aparecem em /termos e /privacidade).
+- Sem `ADMIN_SENHA`, nenhuma conta admin é criada em produção — não existe senha padrão.
+- A vitrine pública (GitHub Pages) lê `/api/vitrine/prestadores.json`; a origem liberada é `VITRINE_ORIGEM`.

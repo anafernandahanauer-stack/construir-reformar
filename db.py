@@ -140,7 +140,7 @@ CREATE INDEX IF NOT EXISTS idx_usuarios_email ON usuarios(email);
 # startup e só alteram o que ainda não existe, para não quebrar produção.
 _COLUNAS_NOVAS = {
     "prestadores": [("regiao_id", "INTEGER"), ("foto_url", "TEXT")],
-    "usuarios": [("nome", "TEXT")],
+    "usuarios": [("nome", "TEXT"), ("aceite_termos_em", "TEXT"), ("aceite_termos_versao", "TEXT")],
     "avaliacoes": [("usuario_id", "INTEGER"), ("foto_url", "TEXT")],
 }
 
