@@ -1,0 +1,12 @@
+{
+  "name": "construir-reformar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Construir & Reformar — diretório de obra de Mato Grosso com busca em linguagem do dia a dia (site + PWA instalável).",
+  "scripts": {
+    "start": "npx --yes serve . -l 5173",
+    "dev": "npx --yes serve . -l 5173",
+    "test": "python3 motor/teste_busca.py"
+  },
+  "license": "UNLICENSED"
+}
