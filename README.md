@@ -15,7 +15,8 @@ construir-reformar/
 ├── index.html          → o site inteiro (HTML + CSS + JavaScript em um único arquivo)
 ├── dados.js            → taxonomia e motor de busca por sinônimos (gerado a partir de motor/)
 ├── config.js           → ÚNICO arquivo a editar: canal de cadastro e lista de fichas reais
-├── INTEGRACAO.md       → como ligar a vitrine ao sistema Flask (rota pronta para colar)
+├── INTEGRACAO.md       → como a vitrine se liga ao sistema Flask
+├── LANCAMENTO.md       → roteiro de abertura: quem faz o quê, em que ordem
 ├── privacidade.html    → o que a vitrine coleta (nada) e o que fica no aparelho
 ├── 404.html            → página de endereço inexistente, com volta ao início
 ├── fonts/              → Outfit, Plus Jakarta Sans e Space Grotesk servidas pelo próprio site (licença OFL)
@@ -51,7 +52,7 @@ Depois abra `http://localhost:5173`.
 
 ## Ligar o cadastro
 
-Abra `config.js` e preencha **um** dos três campos — o primeiro preenchido vence:
+Abra `config.js` e preencha `sistemaUrl` com o endereço do sistema no Render: o cadastro e as fichas reais se ligam juntos. Para usar outro canal de cadastro, preencha **um** destes — o primeiro preenchido vence:
 
 | Campo | Exemplo | Quando usar |
 |---|---|---|
@@ -90,7 +91,7 @@ Cada categoria tem endereço próprio para compartilhar: `…/#cat=eletricista`.
 
 Todos dão HTTPS, que é pré-requisito do navegador para instalar o app.
 
-**Ao republicar:** suba a versão em `service-worker.js` (hoje `cr-v2` → `cr-v3`). Isso invalida o cache de quem já instalou.
+**Ao republicar:** suba a versão em `service-worker.js` (hoje `cr-v3` → `cr-v4`). Isso invalida o cache de quem já instalou.
 
 ## Privacidade
 
@@ -101,8 +102,7 @@ terceiros: fontes, ícones e scripts vêm do próprio endereço. Detalhes em `pr
 
 Em ordem de prioridade:
 
-1. **Decidir o encaixe com o Flask** — INTEGRACAO.md traz os dois caminhos; o recomendado leva uma rota colada e dois campos no `config.js`.
-2. **Ligar cadastro e fichas reais** — `cadastroUrl` e `prestadoresUrl` no `config.js`.
+1. **Abrir** — seguir o **LANCAMENTO.md**: merge do PR #3 no sistema, dois campos no Render, uma linha (`sistemaUrl`) no `config.js` e a liberação.
 3. **Avaliação em 5 métricas** — Atendimento, Qualidade e quantidade, Inspeção e segurança, Resolveu a demanda, Indicaria. O layout está pronto; a gravação e a moderação são do servidor.
 4. **Domínio próprio** — e, com ele, o endereço absoluto da imagem de compartilhamento (`og:image`) para o link ficar bonito no WhatsApp.
 5. **Termos de uso e política de privacidade (LGPD)** — obrigatórios antes de publicar dados de pessoas reais.

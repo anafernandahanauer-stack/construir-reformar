@@ -14,18 +14,23 @@ login, painel do prestador e moderação. As duas peças se ligam por **dois cam
 
 O caminho A não impede o B depois: a vitrine pode ser absorvida pelo Flask a qualquer momento.
 
-## Caminho A em 3 passos
+## Caminho A em 2 passos
 
-### 1. Botão de cadastro → formulário do Flask
-No `config.js`:
+### 1. Aprovar o PR no Flask
+A rota pública de fichas, os Termos, a Privacidade e a limpeza dos dados de demonstração
+já estão prontos no **PR #3** do repositório do sistema
+(`vitorzanchetpereira/vzp-construir-reformar-app-web`, branch `vitrine-lancamento`),
+testados em SQLite e Postgres. É só revisar e fazer o merge — o Render redeploya sozinho.
+
+### 2. Uma linha no `config.js` da vitrine
 ```js
-cadastroUrl: 'https://construir-reformar.onrender.com/cadastro',
+sistemaUrl: 'https://SEU-SERVICO.onrender.com',
 ```
+Com ela, o botão **Cadastrar meu negócio** vai para `<sistema>/cadastro` e as fichas reais
+passam a vir de `<sistema>/api/vitrine/prestadores.json`. Suba a versão do
+`service-worker.js` ao republicar.
 
-### 2. Rota pública de fichas no Flask
-Cole em `app.py`. Ela expõe **só** o que já é público no site do Flask (nome, categoria,
-região, WhatsApp, descrição, selo e média das avaliações aprovadas), nunca e-mail de
-login, senha ou avaliação pendente.
+### Referência: a rota (já incluída no PR)
 
 ```python
 # --- vitrine pública (GitHub Pages) -------------------------------------------
@@ -104,5 +109,6 @@ Uma lista JSON (ou `{ "prestadores": [...] }`). Campos por ficha:
 | `indica` | não — % que indicariam | `96` |
 
 ## Antes de abrir de verdade (no Flask)
-- `SEED_DEMO=0` e apagar os prestadores e contas de demonstração.
-- Termos de uso e política de privacidade do **cadastro** (a da vitrine já está em `privacidade.html`).
+Resolvido no PR #3: dados de demonstração removidos no deploy (`SEED_DEMO=0`), sem senha
+padrão de admin, Termos e Privacidade com aceite gravado. Falta só preencher no Render
+`CONTROLADOR_CNPJ` e `CONTATO_PRIVACIDADE`. O passo a passo completo está em **LANCAMENTO.md**.
