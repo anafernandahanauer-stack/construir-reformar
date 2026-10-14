@@ -1,0 +1,2 @@
+{# Identificação de quem responde pelos dados — vem das variáveis de ambiente (render.yaml). #}
+<strong>{{ legal.controlador }}</strong>{% if legal.cnpj %}, CNPJ {{ legal.cnpj }}{% endif %}{% if legal.contato %} — contato: <a class="link" href="mailto:{{ legal.contato }}">{{ legal.contato }}</a>{% endif %}

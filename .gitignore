@@ -13,3 +13,6 @@ hub.db
 desktop.ini
 Thumbs.db
 .DS_Store
+
+# Cloud Run: variáveis reais nunca vão para o GitHub
+cloudrun/env.yaml

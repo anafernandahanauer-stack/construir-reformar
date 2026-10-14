@@ -8,6 +8,9 @@
   <p class="sub">Grátis para entrar no diretório. Você cria uma conta para gerenciar seu perfil e,
      quando quiser, pode assinar para virar <strong>Verificado</strong> e aparecer no topo.</p>
 
+  {% if cadastro_fechado %}
+  <div class="nota-fase"><strong>Em breve.</strong> {{ cadastro_fechado }}</div>
+  {% else %}
   <form action="{{ url_for('cadastro') }}" method="post" class="form" enctype="multipart/form-data">
     <input type="hidden" name="_csrf" value="{{ csrf_token }}">
     <div class="campo">
@@ -58,8 +61,14 @@
       </div>
     </div>
 
+    <label class="aceite" for="aceite_termos">
+      <input type="checkbox" id="aceite_termos" name="aceite_termos" value="1" required {% if form.get('aceite_termos') == '1' %}checked{% endif %}>
+      <span>Tenho 18 anos ou mais e li e aceito os <a class="link" href="{{ url_for('termos') }}">Termos de uso</a> e a
+      <a class="link" href="{{ url_for('privacidade') }}">Política de privacidade</a>.</span>
+    </label>
     <button class="btn btn-primary btn-lg" type="submit">Cadastrar gratuitamente</button>
   </form>
+  {% endif %}
 </section>
 
 {% endblock %}

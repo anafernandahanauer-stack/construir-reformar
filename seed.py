@@ -1,10 +1,14 @@
 """
 Popula o banco. Idempotente e seguro para produção:
   • categorias e conta admin são sempre garantidas (checa antes de inserir);
-  • dados de demonstração (prestadores/avaliações/conta demo) só entram se
-    SEED_DEMO != "0" e ainda não houver prestadores.
+  • dados de demonstração (prestadores/avaliações/contas demo) só entram com
+    SEED_DEMO=1 e banco vazio. Sem a variável: entram no SQLite local (para
+    testar) e NUNCA no Postgres de produção;
+  • com SEED_DEMO=0, os dados de demonstração que já existirem são removidos
+    (só os do seed: mesmo nome E mesmo WhatsApp; nada cadastrado de verdade).
 
 Admin de produção vem das variáveis de ambiente ADMIN_EMAIL / ADMIN_SENHA.
+Em produção, sem ADMIN_SENHA, nenhuma conta admin é criada com senha padrão.
 """
 import os
 import db
@@ -78,9 +82,19 @@ def ensure_regioes():
         db.execute("INSERT INTO regioes (nome, uf, slug) VALUES (?,?,?)", ("Sorriso", "MT", "sorriso-mt"))
 
 
+def _producao():
+    # Postgres, ou qualquer contêiner do Cloud Run (K_SERVICE), conta como produção.
+    return db.BACKEND == "postgres" or bool(os.environ.get("K_SERVICE"))
+
+
 def ensure_admin():
     email = os.environ.get("ADMIN_EMAIL", "admin@construireformar.local").strip().lower()
-    senha = os.environ.get("ADMIN_SENHA", "admin123")
+    senha = os.environ.get("ADMIN_SENHA", "")
+    if not senha:
+        if _producao():
+            print("AVISO: ADMIN_SENHA não definida — conta admin não criada em produção.")
+            return
+        senha = "admin123"  # só no SQLite local, para testar
     admin = db.query("SELECT id, nome FROM usuarios WHERE email = ?", (email,), one=True)
     if not admin:
         db.execute(
@@ -121,6 +135,26 @@ def seed_demo():
         )
 
 
+DEMO_EMAILS = ("demo@construireformar.local", "cliente@construireformar.local")
+
+
+def limpar_demo():
+    """Remove só o que o seed_demo() criou: prestador com o mesmo nome E o mesmo
+    WhatsApp da lista PRESTADORES (avaliações e fotos vão junto, por cascata) e
+    as duas contas de demonstração. Cadastro real nunca bate nos dois campos."""
+    removidos = 0
+    for nome, _slug, _tel, wpp, _desc, _verif in PRESTADORES:
+        for r in db.query("SELECT id FROM prestadores WHERE nome = ? AND whatsapp = ?", (nome, wpp)):
+            db.execute("DELETE FROM avaliacoes WHERE prestador_id = ?", (r["id"],))
+            db.execute("DELETE FROM prestador_fotos WHERE prestador_id = ?", (r["id"],))
+            db.execute("DELETE FROM usuarios WHERE prestador_id = ? AND email IN (?, ?)", (r["id"],) + DEMO_EMAILS)
+            db.execute("DELETE FROM prestadores WHERE id = ?", (r["id"],))
+            removidos += 1
+    for email in DEMO_EMAILS:
+        db.execute("DELETE FROM usuarios WHERE email = ?", (email,))
+    return removidos
+
+
 def _preencher_nomes_faltantes():
     """Contas de prestador criadas antes da coluna usuarios.nome existir ficam
     sem nome; usa o nome do próprio prestador para não deixar exibição vazia."""
@@ -137,12 +171,18 @@ def run():
     ensure_regioes()
     ensure_admin()
     _preencher_nomes_faltantes()
+    padrao = "0" if _producao() else "1"
+    modo = os.environ.get("SEED_DEMO", padrao).strip()
+    if modo == "0":
+        n = limpar_demo()
+        print(f"Seed: categorias + região + admin garantidos (sem demo; {n} prestador(es) de demonstração removidos).")
+        return
     tem_prestadores = db.query("SELECT COUNT(*) AS n FROM prestadores", one=True)["n"] > 0
-    if os.environ.get("SEED_DEMO", "1") != "0" and not tem_prestadores:
+    if not tem_prestadores:
         seed_demo()
         print("Seed: categorias + região + admin + dados de demonstração.")
     else:
-        print("Seed: categorias + região + admin garantidos (sem demo).")
+        print("Seed: categorias + região + admin garantidos (demo já presente ou banco com dados).")
 
 
 if __name__ == "__main__":

@@ -6,6 +6,9 @@
   <h1 class="pagina-titulo">Criar sua conta</h1>
   <p class="sub">Para indicar e avaliar prestadores com seu nome de verdade — nada de indicação anônima.</p>
 
+  {% if cadastro_fechado %}
+  <div class="nota-fase"><strong>Em breve.</strong> {{ cadastro_fechado }}</div>
+  {% else %}
   <form action="{{ url_for('conta_cadastro') }}" method="post" class="form">
     <input type="hidden" name="_csrf" value="{{ csrf_token }}">
     <div class="campo">
@@ -20,8 +23,14 @@
       <label for="senha">Senha * (mín. 6 caracteres)</label>
       <input type="password" id="senha" name="senha" required>
     </div>
+    <label class="aceite" for="aceite_termos">
+      <input type="checkbox" id="aceite_termos" name="aceite_termos" value="1" required {% if form.get('aceite_termos') == '1' %}checked{% endif %}>
+      <span>Tenho 18 anos ou mais e li e aceito os <a class="link" href="{{ url_for('termos') }}">Termos de uso</a> e a
+      <a class="link" href="{{ url_for('privacidade') }}">Política de privacidade</a>.</span>
+    </label>
     <button class="btn btn-primary btn-lg" type="submit">Criar conta grátis</button>
   </form>
+  {% endif %}
 
   <p class="sub" style="margin-top:18px">
     É prestador ou fornecedor? <a class="link" href="{{ url_for('cadastro') }}">Cadastre seu negócio</a>.
