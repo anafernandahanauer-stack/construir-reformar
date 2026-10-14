@@ -52,11 +52,11 @@ Depois abra `http://localhost:5173`.
 
 ## Ligar o cadastro
 
-Abra `config.js` e preencha `sistemaUrl` com o endereço do sistema no Render: o cadastro e as fichas reais se ligam juntos. Para usar outro canal de cadastro, preencha **um** destes — o primeiro preenchido vence:
+Abra `config.js` e preencha `sistemaUrl` com o endereço do sistema no Cloud Run: o cadastro e as fichas reais se ligam juntos. Para usar outro canal de cadastro, preencha **um** destes — o primeiro preenchido vence:
 
 | Campo | Exemplo | Quando usar |
 |---|---|---|
-| `cadastroUrl` | `https://construir-reformar.onrender.com/cadastro` | Formulário do sistema com servidor |
+| `cadastroUrl` | `https://SEU-SERVICO.run.app/cadastro` | Formulário do sistema com servidor |
 | `whatsappCadastro` | `5566999999999` | A equipe recebe o pedido no WhatsApp |
 | `emailCadastro` | `cadastro@seudominio.com.br` | A equipe recebe por e-mail |
 
@@ -102,7 +102,7 @@ terceiros: fontes, ícones e scripts vêm do próprio endereço. Detalhes em `pr
 
 Em ordem de prioridade:
 
-1. **Abrir** — seguir o **LANCAMENTO.md**: merge do PR #3 no sistema, dois campos no Render, uma linha (`sistemaUrl`) no `config.js` e a liberação.
+1. **Abrir** — seguir o **LANCAMENTO.md**: merge do PR #3 no sistema, variáveis e Postgres no Cloud Run, uma linha (`sistemaUrl`) no `config.js` e a liberação.
 3. **Avaliação em 5 métricas** — Atendimento, Qualidade e quantidade, Inspeção e segurança, Resolveu a demanda, Indicaria. O layout está pronto; a gravação e a moderação são do servidor.
 4. **Domínio próprio** — e, com ele, o endereço absoluto da imagem de compartilhamento (`og:image`) para o link ficar bonito no WhatsApp.
 5. **Termos de uso e política de privacidade (LGPD)** — obrigatórios antes de publicar dados de pessoas reais.

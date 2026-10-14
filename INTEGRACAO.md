@@ -1,7 +1,7 @@
 # Integração vitrine ↔ sistema (Flask)
 
 A vitrine (este repositório) não tem banco. Quem tem é o sistema
-`vzp-construir-reformar-app-web` (Flask + Postgres no Render), que já faz cadastro,
+`vzp-construir-reformar-app-web` (Flask + Postgres, hoje no Google Cloud Run), que já faz cadastro,
 login, painel do prestador e moderação. As duas peças se ligam por **dois campos** do
 `config.js` e nada mais.
 
@@ -20,74 +20,24 @@ O caminho A não impede o B depois: a vitrine pode ser absorvida pelo Flask a qu
 A rota pública de fichas, os Termos, a Privacidade e a limpeza dos dados de demonstração
 já estão prontos no **PR #3** do repositório do sistema
 (`vitorzanchetpereira/vzp-construir-reformar-app-web`, branch `vitrine-lancamento`),
-testados em SQLite e Postgres. É só revisar e fazer o merge — o Render redeploya sozinho.
+testados em SQLite e Postgres, já preparados para o Cloud Run. Revisar, fazer o merge e definir as
+variáveis do serviço (seção Cloud Run do `DEPLOY.md` do sistema).
 
 ### 2. Uma linha no `config.js` da vitrine
 ```js
-sistemaUrl: 'https://SEU-SERVICO.onrender.com',
+sistemaUrl: 'https://SEU-SERVICO.run.app',
 ```
 Com ela, o botão **Cadastrar meu negócio** vai para `<sistema>/cadastro` e as fichas reais
 passam a vir de `<sistema>/api/vitrine/prestadores.json`. Suba a versão do
 `service-worker.js` ao republicar.
 
-### Referência: a rota (já incluída no PR)
-
-```python
-# --- vitrine pública (GitHub Pages) -------------------------------------------
-VITRINE_ORIGEM = os.environ.get("VITRINE_ORIGEM", "https://anafernandahanauer-stack.github.io")
-
-# slug do Flask -> slug da vitrine (taxonomia de 36 categorias)
-SLUG_VITRINE = {
-    "pedreiro": "pedreiro", "eletricista": "eletricista", "encanador": "encanador",
-    "pintor": "pintor", "marceneiro": "marceneiro", "serralheiro": "serralheiro",
-    "terraplenagem": "terraplenagem", "locacao": "locacao-equipamentos",
-    "gesso": "gesso-drywall", "engenharia": "projeto-engenharia",
-    "materiais": "materiais-construcao", "limpeza": "limpeza-pos-obra",
-}
-
-@app.route("/api/vitrine/prestadores.json")
-def api_vitrine_prestadores():
-    rows = db.query("""
-        SELECT p.id, p.nome, p.whatsapp, p.descricao, p.verificado,
-               c.slug AS categoria_slug, r.nome AS regiao_nome, r.uf AS regiao_uf,
-               COUNT(a.id) AS n, COALESCE(ROUND(AVG(a.nota),1),0) AS media
-        FROM prestadores p
-        JOIN categorias c ON c.id = p.categoria_id
-        LEFT JOIN regioes r ON r.id = p.regiao_id
-        LEFT JOIN avaliacoes a ON a.prestador_id = p.id AND a.status = 'aprovada'
-        GROUP BY p.id, c.id, r.id
-        ORDER BY p.verificado DESC, p.nome
-    """)
-    saida = []
-    for r in rows:
-        slug = SLUG_VITRINE.get(r["categoria_slug"], r["categoria_slug"])
-        saida.append({
-            "slug": slug,
-            "marca": r["nome"], "resp": None,
-            "cidade": f'{r["regiao_nome"]}/{r["regiao_uf"]}' if r["regiao_nome"] else "Mato Grosso",
-            "escopo": r["descricao"] or "",
-            "whats": (r["whatsapp"] or "").strip() or None,
-            "verif": bool(r["verificado"]),
-            "n": int(r["n"]), "media": float(r["media"]),
-        })
-    resp = jsonify(saida)
-    resp.headers["Access-Control-Allow-Origin"] = VITRINE_ORIGEM
-    resp.headers["Cache-Control"] = "public, max-age=300"
-    return resp
-```
-
-Categorias novas criadas no painel admin entram na vitrine se o slug for um dos 36 da
-taxonomia (`motor/categorias-agrupadas.json`); as outras são ignoradas pela vitrine sem erro.
-
-### 3. Apontar a vitrine para a rota
-No `config.js`:
-```js
-prestadoresUrl: 'https://construir-reformar.onrender.com/api/vitrine/prestadores.json',
-```
-Suba a versão do `service-worker.js` (`cr-v2` → `cr-v3`) ao republicar.
-
-Com isso, as fichas de exemplo somem sozinhas e entram as reais. Se o servidor estiver
-fora do ar (o plano grátis do Render "dorme"), a vitrine continua funcionando com os exemplos.
+### O que a rota entrega
+`GET <sistema>/api/vitrine/prestadores.json` (código em `app.py` do sistema, no PR #3) devolve só o
+que já é público na ficha — nome, categoria, região, WhatsApp, descrição, selo, nº de avaliações
+aprovadas, média e link da ficha — com CORS liberado apenas para `VITRINE_ORIGEM`. Categorias
+criadas no painel admin entram na vitrine se o slug for um dos 36 da taxonomia
+(`motor/categorias-agrupadas.json`); as outras são ignoradas sem erro. Se o sistema estiver fora
+do ar, a vitrine continua com os exemplos.
 
 ## Formato aceito pela vitrine
 
@@ -110,5 +60,6 @@ Uma lista JSON (ou `{ "prestadores": [...] }`). Campos por ficha:
 
 ## Antes de abrir de verdade (no Flask)
 Resolvido no PR #3: dados de demonstração removidos no deploy (`SEED_DEMO=0`), sem senha
-padrão de admin, Termos e Privacidade com aceite gravado. Falta só preencher no Render
-`CONTROLADOR_CNPJ` e `CONTATO_PRIVACIDADE`. O passo a passo completo está em **LANCAMENTO.md**.
+padrão de admin, Termos e Privacidade com aceite gravado e app preparado para o Cloud Run.
+Falta definir no Cloud Run o Postgres (`DATABASE_URL`), os segredos e `CONTROLADOR_CNPJ` /
+`CONTATO_PRIVACIDADE`. O passo a passo completo está em **LANCAMENTO.md**.
