@@ -1,0 +1,11 @@
+# Nada disto entra na imagem do Cloud Run
+.git
+.venv
+__pycache__/
+*.pyc
+hub.db
+.env
+cloudrun/env.yaml
+desktop.ini
+Thumbs.db
+.DS_Store

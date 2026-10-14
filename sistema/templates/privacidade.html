@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block titulo %}Política de privacidade{% endblock %}
+{% block conteudo %}
+<section class="prosa legal">
+  <a class="voltar" href="{{ url_for('index') }}" onclick="if(history.length>1){history.back();return false}">← Voltar</a>
+  <h1 class="pagina-titulo">Política de privacidade</h1>
+  <p class="mini">Versão {{ legal.versao }} · Lei Geral de Proteção de Dados (Lei 13.709/2018)</p>
+
+  <p>O Construir &amp; Reformar é um diretório de prestadores de serviço e fornecedores da construção.
+     Esta página explica, em linguagem direta, quais dados usamos, para quê, com quem e por quanto tempo.</p>
+
+  <h2 class="secao-titulo">Quem responde pelos dados</h2>
+  <p>{% include "_legal_ident.html" %}. É a quem você se dirige para qualquer pedido sobre seus dados.</p>
+
+  <h2 class="secao-titulo">Quais dados e por quê</h2>
+  <table class="tabela-legal">
+    <thead><tr><th>Quem</th><th>Dados</th><th>Para quê</th><th>Base legal</th></tr></thead>
+    <tbody>
+      <tr><td>Quem só busca</td><td>Nenhum dado pessoal. Só o cookie técnico de sessão.</td><td>Manter o site funcionando e seguro</td><td>Legítimo interesse (art. 7º, IX)</td></tr>
+      <tr><td>Prestador ou fornecedor</td><td>Nome do negócio, categoria, região, telefone, WhatsApp, descrição, fotos, e-mail e senha (guardada só como código irreversível)</td><td>Publicar a ficha e permitir que você a edite</td><td>Execução do serviço que você pediu (art. 7º, V)</td></tr>
+      <tr><td>Quem indica ou avalia</td><td>Nome, e-mail, senha (irreversível), notas, comentário e foto opcional</td><td>Publicar a indicação com nome real e moderar abusos</td><td>Execução do serviço (art. 7º, V) e legítimo interesse na moderação (art. 7º, IX)</td></tr>
+    </tbody>
+  </table>
+  <p>Também registramos a data e a versão destes termos quando você cria sua conta, como prova do aceite.</p>
+
+  <h2 class="secao-titulo">O que fica público</h2>
+  <p>Na ficha do prestador ficam visíveis a todos: nome do negócio, categoria, região, telefone, WhatsApp,
+     descrição, fotos e as avaliações aprovadas, com o nome de quem avaliou. <strong>E-mail de login e senha
+     nunca são exibidos.</strong> Avaliações só aparecem depois da moderação.</p>
+
+  <h2 class="secao-titulo">Com quem compartilhamos</h2>
+  <ul>
+    <li><strong>Hospedagem e banco de dados:</strong> Render (servidores que podem ficar fora do Brasil).</li>
+    <li><strong>Fotos:</strong> Cloudinary, quando você envia uma imagem.</li>
+    <li><strong>Vitrine pública:</strong> as mesmas informações já públicas da ficha são lidas pela vitrine do Construir &amp; Reformar.</li>
+  </ul>
+  <p>Esses serviços processam os dados só para manter a plataforma funcionando. Quando o processamento ocorre
+     fora do país, ele segue as garantias do art. 33 da LGPD. Não vendemos nem alugamos dados a ninguém.</p>
+
+  <h2 class="secao-titulo">Por quanto tempo</h2>
+  <p>Enquanto sua conta existir. Ao pedir a exclusão, removemos a ficha, as fotos e o acesso em até 15 dias,
+     salvo o que a lei obrigue a guardar.</p>
+
+  <h2 class="secao-titulo">Seus direitos</h2>
+  <p>Você pode, a qualquer momento, pedir confirmação de que tratamos seus dados, acesso, correção,
+     anonimização, portabilidade, exclusão e informações sobre compartilhamento, além de revogar o
+     consentimento quando ele for a base (art. 18 da LGPD). Boa parte você faz sozinho no seu painel;
+     o restante, pelo contato acima. Você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD).</p>
+
+  <h2 class="secao-titulo">Segurança</h2>
+  <p>Conexão criptografada (HTTPS), senhas guardadas como código irreversível, proteção contra envio
+     de formulário forjado e moderação humana antes de publicar avaliações.</p>
+
+  <h2 class="secao-titulo">Idade</h2>
+  <p>Contas são para maiores de 18 anos.</p>
+
+  <h2 class="secao-titulo">Mudanças</h2>
+  <p>Se esta política mudar de forma relevante, avisamos no site e, quando for o caso, pedimos novo aceite.</p>
+
+  <p class="mini">Veja também os <a class="link" href="{{ url_for('termos') }}">Termos de uso</a>.</p>
+</section>
+{% endblock %}

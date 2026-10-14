@@ -5,7 +5,7 @@ que só vocês podem preencher**, nesta ordem. Tempo total: cerca de 1 hora, mai
 
 | # | Quem | O quê | Onde | Tempo |
 |---|---|---|---|---|
-| 1 | Vitor | Revisar e fazer o merge do **PR #3** (produção limpa, Termos/Privacidade, rota da vitrine, Cloud Run) | GitHub · `vzp-construir-reformar-app-web` | 15 min |
+| 1 | Vitor | ~~Merge do **PR #3**~~ — feito: o sistema já está em `sistema/` com o PR #3 dentro | GitHub · `construir-reformar` | — |
 | 2 | Vitor | No Cloud Run: ligar um **Postgres** (`DATABASE_URL`), segredos `SECRET_KEY` e `ADMIN_SENHA`, e as variáveis `SEED_DEMO=0`, `VITRINE_ORIGEM`, `CONTROLADOR_CNPJ`, `CONTATO_PRIVACIDADE` — comandos prontos no `DEPLOY.md` do sistema | Google Cloud · Cloud Run / Cloud SQL / Secret Manager | 20–40 min |
 | 3 | Jurídico | Ler `/termos` e `/privacidade` do sistema | Site do sistema | 1 leitura |
 | 4 | Duana | Abrir `https://…run.app/saude` e ver `"banco": "postgres"` e `"cadastro_aberto": true`; colar esse endereço em `sistemaUrl` no `config.js` e subir `cr-v3` → `cr-v4` | Este repositório | 2 min |

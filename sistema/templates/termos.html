@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block titulo %}Termos de uso{% endblock %}
+{% block conteudo %}
+<section class="prosa legal">
+  <a class="voltar" href="{{ url_for('index') }}" onclick="if(history.length>1){history.back();return false}">← Voltar</a>
+  <h1 class="pagina-titulo">Termos de uso</h1>
+  <p class="mini">Versão {{ legal.versao }}</p>
+
+  <h2 class="secao-titulo">1. O que é a plataforma</h2>
+  <p>O Construir &amp; Reformar, mantido por {% include "_legal_ident.html" %}, é um diretório que ajuda
+     quem constrói ou reforma a encontrar prestadores de serviço e fornecedores por tipo de serviço e região.
+     <strong>A plataforma não intermedia a contratação:</strong> orçamento, preço, prazo, execução e pagamento
+     são combinados diretamente entre as partes.</p>
+
+  <h2 class="secao-titulo">2. Cadastro</h2>
+  <ul>
+    <li>Buscar é livre e não exige conta. Ter ficha no diretório é gratuito.</li>
+    <li>Quem se cadastra declara ter 18 anos ou mais e que as informações são verdadeiras e de sua responsabilidade.</li>
+    <li>O nome exibido segue o padrão <em>Marca (Responsável)</em> para quem busca reconhecer o serviço; você pode ajustá-lo no seu painel.</li>
+    <li>Você é responsável por manter sua senha em sigilo.</li>
+  </ul>
+
+  <h2 class="secao-titulo">3. Responsabilidades do prestador e do fornecedor</h2>
+  <p>Cada prestador responde pelos serviços e produtos que oferece, pelas licenças, registros profissionais,
+     ART/RRT e normas de segurança aplicáveis, e pela veracidade do que publica na ficha.</p>
+
+  <h2 class="secao-titulo">4. Indicações e avaliações</h2>
+  <ul>
+    <li>Avaliações são feitas com nome real e passam por moderação antes de aparecer.</li>
+    <li>Não são aceitas avaliações falsas, de si mesmo, compradas, ofensivas, discriminatórias, com dados pessoais de terceiros ou propaganda.</li>
+    <li>A moderação pode recusar ou remover conteúdo que descumpra estas regras.</li>
+  </ul>
+
+  <h2 class="secao-titulo">5. Selo Verificado</h2>
+  <p>O selo indica um plano de assinatura do prestador com conferência cadastral pela equipe. Ele não é
+     garantia de resultado do serviço.</p>
+
+  <h2 class="secao-titulo">6. O que não é permitido</h2>
+  <p>Usar a plataforma para fraude, spam, coleta automatizada de dados de terceiros, conteúdo ilegal ou que
+     viole direitos de outras pessoas. Contas nessas situações podem ser suspensas ou removidas.</p>
+
+  <h2 class="secao-titulo">7. Limites de responsabilidade</h2>
+  <p>A plataforma organiza informações publicadas pelos próprios usuários e não responde pela execução,
+     qualidade ou pagamento de serviços contratados entre as partes. Fazemos o possível para manter o site
+     no ar, mas podem ocorrer interrupções.</p>
+
+  <h2 class="secao-titulo">8. Dados pessoais</h2>
+  <p>O uso dos seus dados segue a <a class="link" href="{{ url_for('privacidade') }}">Política de privacidade</a>.</p>
+
+  <h2 class="secao-titulo">9. Encerramento e mudanças</h2>
+  <p>Você pode excluir sua conta quando quiser. Estes termos podem ser atualizados; mudanças relevantes serão
+     avisadas no site e, quando for o caso, pediremos novo aceite.</p>
+
+  <h2 class="secao-titulo">10. Foro</h2>
+  <p>Fica eleito o foro da comarca de Sorriso/MT, sem prejuízo dos direitos do consumidor de demandar no seu domicílio.</p>
+</section>
+{% endblock %}

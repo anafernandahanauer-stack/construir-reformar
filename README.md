@@ -6,7 +6,7 @@ Diretório de obra de Mato Grosso: a pessoa descreve o problema como fala — �
 
 Uma iniciativa VZP Engenharia / Base Empreendimentos.
 
-**Importante antes de começar:** esta é a **vitrine pública**. A busca por linguagem do dia a dia funciona de verdade (1.054 termos informais, 132 de 132 casos de teste passando), mas não há banco de dados aqui: as fichas de prestador exibidas são **exemplos fictícios** de como o cadastro vai aparecer. As fichas reais e as avaliações vêm do sistema com servidor (ver “Próximos passos”).
+**Importante antes de começar:** a raiz é a **vitrine pública**; o sistema com servidor mora em `sistema/`. A busca por linguagem do dia a dia funciona de verdade (1.054 termos informais, 132 de 132 casos de teste passando), mas não há banco de dados aqui: as fichas de prestador exibidas são **exemplos fictícios** de como o cadastro vai aparecer. As fichas reais e as avaliações vêm do sistema com servidor (ver “Próximos passos”).
 
 ## O que tem em cada arquivo
 
@@ -25,6 +25,8 @@ construir-reformar/
 ├── icons/              → ícone do app em todos os tamanhos + imagem de compartilhamento (og-image)
 ├── motor/              → fonte da verdade da busca: categorias-agrupadas.json, busca_sinonimos.py,
 │                         nomes_cards.py (padrão "Marca (Responsável)") e teste_busca.py
+├── sistema/          → o sistema Flask + Postgres (cadastro, login, painel, moderação, API do conector).
+│                         Publica no Cloud Run a partir desta pasta — ver sistema/DEPLOY.md
 ├── package.json        → atalhos para rodar localmente e testar a busca (não é obrigatório)
 ├── robots.txt / .nojekyll
 └── .gitignore
@@ -102,7 +104,7 @@ terceiros: fontes, ícones e scripts vêm do próprio endereço. Detalhes em `pr
 
 Em ordem de prioridade:
 
-1. **Abrir** — seguir o **LANCAMENTO.md**: merge do PR #3 no sistema, variáveis e Postgres no Cloud Run, uma linha (`sistemaUrl`) no `config.js` e a liberação.
+1. **Abrir** — seguir o **LANCAMENTO.md**: o PR #3 do sistema já está em `sistema/`; faltam variáveis e Postgres no Cloud Run, uma linha (`sistemaUrl`) no `config.js` e a liberação.
 3. **Avaliação em 5 métricas** — Atendimento, Qualidade e quantidade, Inspeção e segurança, Resolveu a demanda, Indicaria. O layout está pronto; a gravação e a moderação são do servidor.
 4. **Domínio próprio** — e, com ele, o endereço absoluto da imagem de compartilhamento (`og:image`) para o link ficar bonito no WhatsApp.
 5. **Termos de uso e política de privacidade (LGPD)** — obrigatórios antes de publicar dados de pessoas reais.
