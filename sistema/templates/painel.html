@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% from "_macros.html" import estrelas %}
+{% block titulo %}Meu painel{% endblock %}
+{% block conteudo %}
+
+<section>
+  <div class="secao-head">
+    <h1 class="pagina-titulo">Meu painel</h1>
+    <a class="btn btn-primary" href="{{ url_for('painel_editar') }}">Editar perfil</a>
+  </div>
+
+  <div class="painel-card">
+    <div class="perfil-head">
+      <span class="perfil-icone">{{ p['categoria_icone'] }}</span>
+      <div>
+        <h2 class="perfil-nome">
+          {{ p['nome'] }}
+          {% if p['verificado'] %}<span class="selo">✔ Verificado</span>
+          {% else %}<span class="selo selo-cinza">Não verificado</span>{% endif %}
+        </h2>
+        <p class="perfil-cat">{{ p['categoria_nome'] }}{% if p['regiao_nome'] %} · {{ p['regiao_nome'] }}/{{ p['regiao_uf'] }}{% endif %}</p>
+        <div class="perfil-nota">
+          {{ estrelas(stats['media']) }}
+          <span>{{ stats['media'] }} · {{ stats['n'] }} avaliação(ões) aprovada(s)</span>
+        </div>
+      </div>
+    </div>
+    {% if p['descricao'] %}<p class="perfil-desc">{{ p['descricao'] }}</p>{% endif %}
+    <p class="mini-info">📞 {{ p['telefone'] or '—' }} &nbsp;·&nbsp; 💬 {{ p['whatsapp'] or '—' }}</p>
+    <a class="link" href="{{ url_for('prestador', pid=p['id']) }}">Ver meu perfil público →</a>
+  </div>
+
+  {% if not p['verificado'] %}
+    <div class="nota-fase">
+      <strong>Quer aparecer no topo?</strong> O selo <span class="selo">✔ Verificado</span> é liberado
+      pela equipe VZP para prestadores assinantes. Fale com a gente para ativar.
+    </div>
+  {% endif %}
+</section>
+
+<section>
+  <h2 class="secao-titulo">Fotos do trabalho</h2>
+  {% if fotos %}
+    <div class="galeria-grid">
+      {% for f in fotos %}
+        <div class="galeria-item">
+          <img src="{{ f['url'] }}" alt="">
+          <form action="{{ url_for('painel_fotos_remover', fid=f['id']) }}" method="post">
+            <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+            <button class="btn btn-mini btn-nao" type="submit">Remover</button>
+          </form>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="vazio-inline">Você ainda não tem fotos na galeria. Mostre seu trabalho!</p>
+  {% endif %}
+  <form action="{{ url_for('painel_fotos_adicionar') }}" method="post" enctype="multipart/form-data" class="form-foto">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <input type="file" name="foto" accept="image/*" required>
+    <button class="btn btn-primary btn-mini" type="submit">Adicionar foto</button>
+  </form>
+</section>
+
+<section>
+  <h2 class="secao-titulo">Minhas avaliações
+    {% if pendentes %}<span class="badge-pend">{{ pendentes }} em moderação</span>{% endif %}
+  </h2>
+  {% if avaliacoes %}
+    {% for a in avaliacoes %}
+      <div class="avaliacao">
+        <div class="avaliacao-head">
+          <strong>{{ a['autor'] }}</strong>
+          {{ estrelas(a['nota']) }}
+          <span class="status status-{{ a['status'] }}">{{ a['status'] }}</span>
+        </div>
+        {% if a['comentario'] %}<p>{{ a['comentario'] }}</p>{% endif %}
+        <span class="avaliacao-data">{{ a['criado_em']|data }}</span>
+      </div>
+    {% endfor %}
+  {% else %}
+    <p class="vazio-inline">Você ainda não recebeu avaliações.</p>
+  {% endif %}
+</section>
+
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% from "_macros.html" import regiao_select with context %}
+{% block titulo %}Cadastrar meu negócio{% endblock %}
+{% block conteudo %}
+
+<section class="form-box estreito">
+  <h1 class="pagina-titulo">Cadastre seu negócio</h1>
+  <p class="sub">Grátis para entrar no diretório. Você cria uma conta para gerenciar seu perfil e,
+     quando quiser, pode assinar para virar <strong>Verificado</strong> e aparecer no topo.</p>
+
+  {% if cadastro_fechado %}
+  <div class="nota-fase"><strong>Em breve.</strong> {{ cadastro_fechado }}</div>
+  {% else %}
+  <form action="{{ url_for('cadastro') }}" method="post" class="form" enctype="multipart/form-data">
+    <input type="hidden" name="_csrf" value="{{ csrf_token }}">
+    <div class="campo">
+      <label for="nome">Nome do negócio / profissional *</label>
+      <input type="text" id="nome" name="nome" value="{{ form.get('nome','') }}" required>
+    </div>
+    <div class="campo">
+      <label for="categoria_id">Categoria *</label>
+      <select id="categoria_id" name="categoria_id" required>
+        <option value="">Selecione…</option>
+        {% for c in todas_categorias %}
+          <option value="{{ c['id'] }}" {% if form.get('categoria_id')|string == c['id']|string %}selected{% endif %}>
+            {{ c['icone'] }} {{ c['nome'] }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    {{ regiao_select(form.get('regiao_id')) }}
+    <div class="campo">
+      <label for="foto">Foto de capa (opcional)</label>
+      <input type="file" id="foto" name="foto" accept="image/*">
+    </div>
+    <div class="grid-2">
+      <div class="campo">
+        <label for="telefone">Telefone</label>
+        <input type="text" id="telefone" name="telefone" value="{{ form.get('telefone','') }}" placeholder="(66) 3544-0000">
+      </div>
+      <div class="campo">
+        <label for="whatsapp">WhatsApp (só números, com DDD)</label>
+        <input type="text" id="whatsapp" name="whatsapp" value="{{ form.get('whatsapp','') }}" placeholder="5566990000000">
+      </div>
+    </div>
+    <div class="campo">
+      <label for="descricao">Descrição dos serviços</label>
+      <textarea id="descricao" name="descricao" rows="4" placeholder="Conte o que você faz, sua especialidade e área de atendimento.">{{ form.get('descricao','') }}</textarea>
+    </div>
+
+    <hr class="divisor">
+    <p class="sub" style="margin:0 0 4px"><strong>Dados de acesso</strong> — para você entrar e gerenciar o perfil.</p>
+    <div class="grid-2">
+      <div class="campo">
+        <label for="email">E-mail *</label>
+        <input type="email" id="email" name="email" value="{{ form.get('email','') }}" required>
+      </div>
+      <div class="campo">
+        <label for="senha">Senha * (mín. 6 caracteres)</label>
+        <input type="password" id="senha" name="senha" required>
+      </div>
+    </div>
+
+    <label class="aceite" for="aceite_termos">
+      <input type="checkbox" id="aceite_termos" name="aceite_termos" value="1" required {% if form.get('aceite_termos') == '1' %}checked{% endif %}>
+      <span>Tenho 18 anos ou mais e li e aceito os <a class="link" href="{{ url_for('termos') }}">Termos de uso</a> e a
+      <a class="link" href="{{ url_for('privacidade') }}">Política de privacidade</a>.</span>
+    </label>
+    <button class="btn btn-primary btn-lg" type="submit">Cadastrar gratuitamente</button>
+  </form>
+  {% endif %}
+</section>
+
+{% endblock %}
