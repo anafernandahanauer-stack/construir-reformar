@@ -5,7 +5,7 @@
 
    Sempre que os arquivos do app forem republicados, suba o número da versão
    abaixo — isso invalida o cache antigo automaticamente. */
-const VERSAO = 'cr-v3';
+const VERSAO = 'cr-v4';
 const ARQUIVOS_DO_SHELL = [
   './',
   './index.html',
