@@ -20,4 +20,6 @@ COPY . .
 # de abrir as conexões, então erro de import aparece no arranque e não na
 # primeira visita.
 ENV PORT=8080
-CMD ["sh", "-c", "exec gunicorn --preload app:app --bind 0.0.0.0:${PORT:-8080}"]
+# --timeout 0: o Cloud Run já corta requisições pelo próprio limite; threads
+# aproveitam a CPU da instância sem multiplicar conexões ao banco.
+CMD ["sh", "-c", "exec gunicorn --preload app:app --bind 0.0.0.0:${PORT:-8080} --workers 1 --threads 8 --timeout 0"]

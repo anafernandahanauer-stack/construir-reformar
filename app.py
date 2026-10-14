@@ -19,7 +19,29 @@ import nomes_cards
 import uploads
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "dev-only-troque-em-producao")
+
+# ---------------------------------------------------------------- nuvem (Cloud Run)
+# O Cloud Run define K_SERVICE em todo contêiner. Lá, o HTTPS termina no proxy do
+# Google: ProxyFix faz o Flask enxergar https e o host certo (links absolutos,
+# cookies). E o disco do contêiner é descartável — SQLite ali perde tudo a cada
+# nova instância, por isso o cadastro fica fechado até existir um DATABASE_URL.
+NUVEM = bool(os.environ.get("K_SERVICE"))
+BANCO_EFEMERO = (NUVEM and db.BACKEND == "sqlite"
+                 and os.environ.get("PERMITIR_SQLITE_NA_NUVEM", "") != "1")
+if NUVEM:
+    from werkzeug.middleware.proxy_fix import ProxyFix
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1)
+    app.config.update(SESSION_COOKIE_SECURE=True, SESSION_COOKIE_SAMESITE="Lax")
+
+_segredo = os.environ.get("SECRET_KEY", "")
+if not _segredo and NUVEM:
+    # Sem SECRET_KEY na nuvem, a chave padrão permitiria forjar sessões. Uma chave
+    # aleatória por instância é segura (só desloga ao trocar de instância).
+    _segredo = secrets.token_hex(32)
+    print("AVISO: SECRET_KEY não definida no Cloud Run — usando chave aleatória por instância.")
+app.secret_key = _segredo or "dev-only-troque-em-producao"
+if BANCO_EFEMERO:
+    print("AVISO: Cloud Run sem DATABASE_URL — banco SQLite descartável; cadastros fechados até configurar o Postgres.")
 
 
 @app.template_filter("data")
@@ -404,8 +426,23 @@ def avaliar(pid):
     return redirect(url_for("prestador", pid=pid))
 
 
+_MSG_EFEMERO = ("Os cadastros abrem em breve: estamos terminando de ligar o banco de dados "
+                "para que nenhuma ficha se perca.")
+
+
+@app.route("/saude")
+def saude():
+    """Conferência rápida para quem cuida do deploy (não expõe segredo nenhum)."""
+    return jsonify({"ok": True, "banco": db.BACKEND, "nuvem": NUVEM,
+                    "cadastro_aberto": not BANCO_EFEMERO, "termos_versao": TERMOS_VERSAO})
+
+
 @app.route("/cadastro", methods=["GET", "POST"])
 def cadastro():
+    if BANCO_EFEMERO:
+        if request.method == "POST":
+            flash(_MSG_EFEMERO, "erro")
+        return render_template("cadastro.html", form={}, cadastro_fechado=_MSG_EFEMERO)
     if request.method == "POST":
         f = request.form
         nome = f.get("nome", "").strip()
@@ -456,6 +493,10 @@ def cadastro():
 
 @app.route("/conta/cadastro", methods=["GET", "POST"])
 def conta_cadastro():
+    if BANCO_EFEMERO:
+        if request.method == "POST":
+            flash(_MSG_EFEMERO, "erro")
+        return render_template("conta_cadastro.html", form={}, cadastro_fechado=_MSG_EFEMERO)
     if request.method == "POST":
         f = request.form
         nome = f.get("nome", "").strip()

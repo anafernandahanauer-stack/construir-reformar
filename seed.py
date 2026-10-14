@@ -83,7 +83,8 @@ def ensure_regioes():
 
 
 def _producao():
-    return db.BACKEND == "postgres"
+    # Postgres, ou qualquer contêiner do Cloud Run (K_SERVICE), conta como produção.
+    return db.BACKEND == "postgres" or bool(os.environ.get("K_SERVICE"))
 
 
 def ensure_admin():

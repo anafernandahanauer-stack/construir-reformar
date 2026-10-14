@@ -1,4 +1,63 @@
-# Publicar o Construir & Reformar no Render
+# Publicar o Construir & Reformar no Google Cloud Run
+
+> Produção atual: **Cloud Run** (o serviço do Render ficou inativo em 19/08/2026).
+> A seção do Render, mais abaixo, fica só como referência.
+
+O app roda no Cloud Run pelo `Dockerfile`. Três regras de produção:
+1. **Banco Postgres é obrigatório** (`DATABASE_URL`). O disco do contêiner é descartável:
+   sem Postgres, o app abre, mas **mantém o cadastro fechado** para nenhuma ficha se perder.
+   Confira em `/saude` → `"banco": "postgres"` e `"cadastro_aberto": true`.
+2. **Segredos no Secret Manager**: `DATABASE_URL`, `SECRET_KEY`, `ADMIN_SENHA`.
+3. **Variáveis comuns** em `cloudrun/env.yaml` (modelo em `cloudrun/env.exemplo.yaml`).
+
+## 1. Banco de dados (se ainda não houver um)
+Qualquer Postgres serve. No próprio Google (Cloud SQL, tem custo mensal):
+```bash
+REGIAO=southamerica-east1          # use a região do serviço atual
+PROJETO=$(gcloud config get-value project)
+gcloud services enable run.googleapis.com sqladmin.googleapis.com secretmanager.googleapis.com
+gcloud sql instances create construir-reformar-db --database-version=POSTGRES_16 --region=$REGIAO --tier=db-f1-micro
+gcloud sql databases create construir_reformar --instance=construir-reformar-db
+gcloud sql users create construir_reformar --instance=construir-reformar-db --password='SENHA_FORTE_DO_BANCO'
+```
+Alternativa sem servidor próprio: um Postgres gerenciado (Neon, Supabase…) — basta a URL de conexão.
+
+## 2. Segredos
+```bash
+# Cloud SQL (conexão por socket):
+printf 'postgresql://construir_reformar:SENHA_FORTE_DO_BANCO@/construir_reformar?host=/cloudsql/'$PROJETO':'$REGIAO':construir-reformar-db' \
+  | gcloud secrets create DATABASE_URL --data-file=-
+openssl rand -hex 32 | gcloud secrets create SECRET_KEY --data-file=-
+printf 'SENHA_FORTE_DO_ADMIN' | gcloud secrets create ADMIN_SENHA --data-file=-
+
+# a conta de serviço do Cloud Run precisa ler os segredos:
+SA=$(gcloud run services describe construir-reformar --region $REGIAO --format='value(spec.template.spec.serviceAccountName)')
+for s in DATABASE_URL SECRET_KEY ADMIN_SENHA; do
+  gcloud secrets add-iam-policy-binding $s --member="serviceAccount:$SA" --role=roles/secretmanager.secretAccessor
+done
+```
+(Se o comando `SA=` vier vazio, o serviço usa a conta padrão do Compute: `NUMERO-compute@developer.gserviceaccount.com`.)
+
+## 3. Deploy
+```bash
+cp cloudrun/env.exemplo.yaml cloudrun/env.yaml   # e preencha
+gcloud run deploy construir-reformar --source . --region $REGIAO --allow-unauthenticated \
+  --add-cloudsql-instances $PROJETO:$REGIAO:construir-reformar-db \
+  --env-vars-file cloudrun/env.yaml \
+  --set-secrets DATABASE_URL=DATABASE_URL:latest,SECRET_KEY=SECRET_KEY:latest,ADMIN_SENHA=ADMIN_SENHA:latest
+```
+Se o deploy contínuo pelo GitHub (Cloud Build) já estiver ligado, o merge na `main` refaz a
+imagem sozinho — as variáveis e segredos acima só precisam ser definidos uma vez no serviço.
+
+## 4. Conferir
+- `https://SEU-SERVICO.run.app/saude` → `{"banco": "postgres", "cadastro_aberto": true, ...}`
+- `/termos` e `/privacidade` mostram CNPJ e contato.
+- Com `SEED_DEMO=0`, os dados de demonstração somem no primeiro arranque.
+- Endereço `https://…run.app` vai no `sistemaUrl` do `config.js` da vitrine.
+
+---
+
+# (Referência) Publicar no Render
 
 O código já está pronto para produção: banco **Postgres** (via `DATABASE_URL`),
 servidor **gunicorn**, `SECRET_KEY` e admin por variável de ambiente, e o
