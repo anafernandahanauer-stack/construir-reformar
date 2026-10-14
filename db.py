@@ -12,6 +12,7 @@ from pathlib import Path
 
 _DB_URL = os.environ.get("DATABASE_URL", "")
 BACKEND = "postgres" if _DB_URL.startswith(("postgres://", "postgresql://")) else "sqlite"
+_SCHEMA = os.environ.get("DB_SCHEMA", "").strip()
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "hub.db"
@@ -202,7 +203,15 @@ def get_conn():
         return conn
     import psycopg2
     from psycopg2.extras import RealDictCursor
-    return psycopg2.connect(_DB_URL, cursor_factory=RealDictCursor)
+    conn = psycopg2.connect(_DB_URL, cursor_factory=RealDictCursor)
+    # O pooler do Supabase descarta o parametro 'options' da URL, entao o
+    # search_path da connection string nao chega ao servidor: sem isto o app
+    # cai no schema 'public' e nao enxerga os dados. Fixamos na conexao.
+    if _SCHEMA:
+        with conn.cursor() as cur:
+            cur.execute('SET search_path TO "%s", public' % _SCHEMA)
+        conn.commit()
+    return conn
 
 
 def _prep(sql):

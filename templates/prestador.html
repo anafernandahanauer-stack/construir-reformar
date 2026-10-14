@@ -29,19 +29,19 @@
 
   <div class="perfil-contato">
     {% if p['whatsapp'] %}
-      <a class="btn btn-zap" href="https://wa.me/{{ p['whatsapp'] }}" target="_blank" rel="noopener">
+      <a class="btn btn-zap" href="https://wa.me/{{ p['whatsapp'] }}">
         💬 Chamar no WhatsApp
       </a>
     {% endif %}
     {% if p['telefone'] %}<span class="contato-tel">📞 {{ p['telefone'] }}</span>{% endif %}
     <a class="btn btn-indicar"
        href="https://wa.me/?text={{ ('Olha essa indicação no Construir & Reformar: ' ~ p['nome'] ~ ' — ' ~ request.url)|urlencode }}"
-       target="_blank" rel="noopener">
+      >
       📣 Indicar no WhatsApp
     </a>
     <a class="btn btn-mapa"
        href="https://www.google.com/maps/search/?api=1&query={{ (p['nome'] ~ ', ' ~ p['regiao_nome'] ~ '/' ~ p['regiao_uf'] if p['regiao_nome'] else p['nome'])|urlencode }}"
-       target="_blank" rel="noopener">
+      >
       📍 Ver no mapa
     </a>
   </div>
@@ -52,7 +52,7 @@
   <h2 class="secao-titulo">Fotos do trabalho</h2>
   <div class="galeria-grid">
     {% for f in fotos %}
-      <a href="{{ f['url'] }}" target="_blank" rel="noopener"><img src="{{ f['url'] }}" alt=""></a>
+      <a href="{{ f['url'] }}"><img src="{{ f['url'] }}" alt=""></a>
     {% endfor %}
   </div>
 </section>
