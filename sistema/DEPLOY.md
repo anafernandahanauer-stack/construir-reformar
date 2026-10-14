@@ -12,6 +12,9 @@ região de propósito, ver "Por que São Paulo" no fim.
 
 ## Publicar
 
+Rode **de dentro da pasta `sistema/`** — o `--source .` empacota a pasta atual,
+e da raiz ele levaria a vitrine junto e não acharia o `Dockerfile`.
+
 ```bash
 gcloud run deploy construir-reformar --source . --project central-vzp --region southamerica-east1 --quiet
 ```

@@ -1,7 +1,7 @@
 # Integração vitrine ↔ sistema (Flask)
 
 A vitrine (este repositório) não tem banco. Quem tem é o sistema
-`vzp-construir-reformar-app-web` (Flask + Postgres, hoje no Google Cloud Run), que já faz cadastro,
+da pasta `sistema/` deste mesmo repositório (Flask + Postgres, no Google Cloud Run), que já faz cadastro,
 login, painel do prestador e moderação. As duas peças se ligam por **dois campos** do
 `config.js` e nada mais.
 
@@ -18,8 +18,8 @@ O caminho A não impede o B depois: a vitrine pode ser absorvida pelo Flask a qu
 
 ### 1. Aprovar o PR no Flask
 A rota pública de fichas, os Termos, a Privacidade e a limpeza dos dados de demonstração
-já estão prontos no **PR #3** do repositório do sistema
-(`vitorzanchetpereira/vzp-construir-reformar-app-web`, branch `vitrine-lancamento`),
+já estão em `sistema/` (vieram do **PR #3** do antigo repositório
+`vitorzanchetpereira/vzp-construir-reformar-app-web`, hoje arquivado),
 testados em SQLite e Postgres, já preparados para o Cloud Run. Revisar, fazer o merge e definir as
 variáveis do serviço (seção Cloud Run do `DEPLOY.md` do sistema).
 
@@ -32,7 +32,7 @@ passam a vir de `<sistema>/api/vitrine/prestadores.json`. Suba a versão do
 `service-worker.js` ao republicar.
 
 ### O que a rota entrega
-`GET <sistema>/api/vitrine/prestadores.json` (código em `app.py` do sistema, no PR #3) devolve só o
+`GET <sistema>/api/vitrine/prestadores.json` (código em `sistema/app.py`) devolve só o
 que já é público na ficha — nome, categoria, região, WhatsApp, descrição, selo, nº de avaliações
 aprovadas, média e link da ficha — com CORS liberado apenas para `VITRINE_ORIGEM`. Categorias
 criadas no painel admin entram na vitrine se o slug for um dos 36 da taxonomia
