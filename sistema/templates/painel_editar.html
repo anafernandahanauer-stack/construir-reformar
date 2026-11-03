@@ -17,10 +17,12 @@
     <div class="campo">
       <label for="categoria_id">Categoria *</label>
       <select id="categoria_id" name="categoria_id" required>
-        {% for c in todas_categorias %}
-          <option value="{{ c['id'] }}" {% if p['categoria_id'] == c['id'] %}selected{% endif %}>
-            {{ c['icone'] }} {{ c['nome'] }}
-          </option>
+        {% for g in categorias_em_grupos() %}
+          <optgroup label="{{ g['titulo'] }}">
+            {% for c in g['categorias'] %}
+              <option value="{{ c['id'] }}" {% if p['categoria_id']|string == c['id']|string %}selected{% endif %}>{{ c['icone'] }} {{ c['nome'] }}</option>
+            {% endfor %}
+          </optgroup>
         {% endfor %}
       </select>
     </div>
@@ -43,6 +45,19 @@
     <div class="campo">
       <label for="descricao">Descrição dos serviços</label>
       <textarea id="descricao" name="descricao" rows="4">{{ p['descricao'] or '' }}</textarea>
+    </div>
+    <hr class="divisor">
+    <p class="sub" style="margin:0 0 4px"><strong>Oferta ou voucher (opcional)</strong> — aparece em destaque na sua ficha e no filtro “Com oferta”.</p>
+    <div class="campo">
+      <label for="oferta_texto">Texto da oferta</label>
+      <input type="text" id="oferta_texto" name="oferta_texto" maxlength="120" value="{{ p['oferta_texto'] or '' }}"
+             placeholder="Ex.: Frete grátis acima de R$ 800" aria-describedby="ajuda-oferta">
+      <small class="ajuda" id="ajuda-oferta">Até 120 caracteres. Para tirar a oferta do ar, apague o texto e salve.</small>
+    </div>
+    <div class="campo">
+      <label for="oferta_validade">Vale até (opcional)</label>
+      <input type="date" id="oferta_validade" name="oferta_validade" value="{{ p['oferta_validade'] or '' }}" min="{{ hoje }}" aria-describedby="ajuda-validade">
+      <small class="ajuda" id="ajuda-validade">Depois dessa data a oferta some sozinha. Sem data, fica até você tirar.</small>
     </div>
     <button class="btn btn-primary btn-lg" type="submit">Salvar alterações</button>
   </form>

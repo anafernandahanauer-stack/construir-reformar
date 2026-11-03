@@ -13,10 +13,14 @@
 
   <form class="filtros" action="{{ url_for('prestadores') }}" method="get">
     <input type="text" name="q" value="{{ busca }}" placeholder="Buscar por nome ou serviço…">
-    <select name="categoria">
+    <select name="categoria" aria-label="Categoria">
       <option value="">Todas as categorias</option>
-      {% for c in todas_categorias %}
-        <option value="{{ c['slug'] }}" {% if c['slug']==cat_slug %}selected{% endif %}>{{ c['nome'] }}</option>
+      {% for g in categorias_em_grupos() %}
+        <optgroup label="{{ g['titulo'] }}">
+          {% for c in g['categorias'] %}
+            <option value="{{ c['slug'] }}" {% if c['slug']==cat_slug %}selected{% endif %}>{{ c['nome'] }}</option>
+          {% endfor %}
+        </optgroup>
       {% endfor %}
     </select>
     <select name="regiao">
@@ -28,6 +32,10 @@
     <label class="check">
       <input type="checkbox" name="verificado" value="1" {% if verificado=='1' %}checked{% endif %}>
       Só verificados
+    </label>
+    <label class="check">
+      <input type="checkbox" name="oferta" value="1" {% if com_oferta=='1' %}checked{% endif %}>
+      Com oferta
     </label>
     <button class="btn btn-primary" type="submit">Filtrar</button>
   </form>
@@ -44,6 +52,8 @@
   {% else %}
     <div class="vazio">
       <p>Nenhum prestador encontrado com esses filtros.</p>
+      <p class="sub">Tente tirar um filtro{% if com_oferta=='1' %} — “Com oferta” mostra só quem criou uma oferta valendo hoje{% endif %}.
+        Conhece alguém que faz esse serviço? <a class="link" href="{{ url_for('cadastro') }}">O cadastro é grátis</a>.</p>
       <a class="btn" href="{{ url_for('prestadores') }}">Limpar filtros</a>
     </div>
   {% endif %}

@@ -3,6 +3,8 @@
 {% block titulo %}Cadastrar meu negócio{% endblock %}
 {% block conteudo %}
 
+<a class="voltar" href="{{ url_for('index') }}">← Voltar</a>
+
 <section class="form-box estreito">
   <h1 class="pagina-titulo">Cadastre seu negócio</h1>
   <p class="sub">Grátis para entrar no diretório. Você cria uma conta para gerenciar seu perfil e,
@@ -19,14 +21,17 @@
     </div>
     <div class="campo">
       <label for="categoria_id">Categoria *</label>
-      <select id="categoria_id" name="categoria_id" required>
+      <select id="categoria_id" name="categoria_id" required aria-describedby="ajuda-cat">
         <option value="">Selecione…</option>
-        {% for c in todas_categorias %}
-          <option value="{{ c['id'] }}" {% if form.get('categoria_id')|string == c['id']|string %}selected{% endif %}>
-            {{ c['icone'] }} {{ c['nome'] }}
-          </option>
+        {% for g in categorias_em_grupos() %}
+          <optgroup label="{{ g['titulo'] }}">
+            {% for c in g['categorias'] %}
+              <option value="{{ c['id'] }}" {% if form.get('categoria_id')|string == c['id']|string %}selected{% endif %}>{{ c['icone'] }} {{ c['nome'] }}</option>
+            {% endfor %}
+          </optgroup>
         {% endfor %}
       </select>
+      <small class="ajuda" id="ajuda-cat">As mesmas categorias da busca do site, na ordem da obra. Escolha a do serviço principal — é por ela que o cliente te encontra.</small>
     </div>
     {{ regiao_select(form.get('regiao_id')) }}
     <div class="campo">
