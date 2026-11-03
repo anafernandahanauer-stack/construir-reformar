@@ -1,0 +1,11 @@
+# GitHub Pages publica a raiz deste repositório. Sem esta lista, o código do
+# sistema (sistema/), o gerador da taxonomia (motor/) e as notas internas
+# ficariam abertos em <site>/sistema/app.py e afins.
+exclude:
+  - sistema
+  - motor
+  - CLAUDE.md
+  - INTEGRACAO.md
+  - LANCAMENTO.md
+  - package.json
+  - _config.yml

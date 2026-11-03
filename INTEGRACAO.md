@@ -34,9 +34,11 @@ passam a vir de `<sistema>/api/vitrine/prestadores.json`. Suba a versão do
 ### O que a rota entrega
 `GET <sistema>/api/vitrine/prestadores.json` (código em `sistema/app.py`) devolve só o
 que já é público na ficha — nome, categoria, região, WhatsApp, descrição, selo, nº de avaliações
-aprovadas, média e link da ficha — com CORS liberado apenas para `VITRINE_ORIGEM`. Categorias
-criadas no painel admin entram na vitrine se o slug for um dos 36 da taxonomia
-(`motor/categorias-agrupadas.json`); as outras são ignoradas sem erro. Se o sistema estiver fora
+aprovadas, média, as 5 métricas, % que indicariam, a oferta válida e link da ficha — com CORS
+liberado apenas para `VITRINE_ORIGEM`. Vitrine e sistema usam **a mesma taxonomia**
+(`sistema/categorias-agrupadas.json`; o `dados.js` é gerado dela por `motor/gen_js.py`).
+Categorias antigas ou criadas à mão no painel são traduzidas para o slug da taxonomia (pelo
+slug antigo ou pelo nome); sem correspondência, a ficha fica só no sistema. Se o sistema estiver fora
 do ar, a vitrine continua com os exemplos.
 
 ## Formato aceito pela vitrine
@@ -45,7 +47,8 @@ Uma lista JSON (ou `{ "prestadores": [...] }`). Campos por ficha:
 
 | Campo | Obrigatório | Exemplo |
 |---|---|---|
-| `slug` | sim — um dos 36 da taxonomia | `"eletricista"` |
+| `id` | não — id da ficha no sistema, usado na contagem de cliques | `42` |
+| `slug` | sim — um dos slugs da taxonomia | `"eletricista"` |
 | `marca` | sim | `"Elétrica Sorriso"` |
 | `resp` | não — entra entre parênteses | `"Luiza"` |
 | `cidade` | não | `"Sorriso/MT"` |
@@ -55,8 +58,11 @@ Uma lista JSON (ou `{ "prestadores": [...] }`). Campos por ficha:
 | `verif` | não | `true` |
 | `voucher` | não — texto da oferta | `"Frete grátis acima de R$ 800"` |
 | `n` + `media` | não — total de avaliações aprovadas e média | `12`, `4.7` |
-| `notas` | não — as 5 métricas, quando o sistema passar a gravá-las | `[5, 4.8, 5, 4.9, 5]` |
-| `indica` | não — % que indicariam | `96` |
+| `notas` | não — média de cada uma das 5 métricas (só vem quando há avaliação com métricas) | `[5, 4.8, 5, 4.9, 5]` |
+| `indica` | não — % que deram 4 ou 5 em “Indicaria” | `96` |
+
+### Medição de uso
+`POST <sistema>/api/vitrine/evento` (corpo JSON em `text/plain`, enviado por `sendBeacon`) conta, sem identificar ninguém: `{"tipo":"busca"}`, `{"tipo":"busca_vazia","termo":"..."}` e `{"tipo":"whatsapp","id":42}`. Só aceita a origem `VITRINE_ORIGEM`; termos com número longo ou `@` são descartados. O resultado aparece em `/admin/uso` e, por prestador, no painel dele.
 
 ## Antes de abrir de verdade (no Flask)
 Resolvido no PR #3: dados de demonstração removidos no deploy (`SEED_DEMO=0`), sem senha
