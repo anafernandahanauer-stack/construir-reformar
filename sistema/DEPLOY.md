@@ -85,7 +85,11 @@ para o lugar errado e parece que os cadastros sumiram.**
    checagem filtra por `current_schema()`, então uma tabela homônima no `public`
    não engana mais a migração;
 2. garante as categorias da taxonomia (`categorias-agrupadas.json`, a mesma da
-   vitrine): cria as que faltam e **não renomeia nem duplica** as que já existem;
+   vitrine): cria as que faltam e **não renomeia nem duplica** as que já existem —
+   reconhece também os nomes com prefixo de grupo ("Instalações • Eletricista").
+   Remove ainda as cópias vazias que a versão de 03/11/2026 criou por não
+   reconhecer esses prefixos; cópia com cadastro fica e aparece como aviso no
+   painel admin, para a equipe mover o prestador e excluir a sobra;
 3. garante a região Sorriso/MT e a conta admin (`ADMIN_EMAIL` / `ADMIN_SENHA`).
 
 Dados de demonstração: no Postgres e no Cloud Run o padrão é `SEED_DEMO=0`, que

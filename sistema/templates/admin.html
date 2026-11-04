@@ -95,6 +95,14 @@
 
 <section>
   <h2 class="secao-titulo">Categorias de serviço</h2>
+  {% if repetidas %}
+    <div class="nota-fase">
+      <strong>Categorias repetidas.</strong> Estas correspondem ao mesmo serviço da busca:
+      {% for g in repetidas %}<br>· {{ g|join(' / ') }}{% endfor %}
+      <br>Para juntar: em “Prestadores &amp; selo”, edite quem está na repetida, escolha a outra categoria e salve;
+      depois exclua a que ficou vazia.
+    </div>
+  {% endif %}
   <div class="cat-lista">
     {% for c in todas_categorias %}
       <div class="cat-card">
