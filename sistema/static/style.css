@@ -302,3 +302,63 @@ section{margin:38px 0}
 .tabela-legal th,.tabela-legal td{border-bottom:1px solid var(--linha);padding:8px 10px;text-align:left;vertical-align:top;min-width:120px}
 .aceite{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.5;margin:6px 0 4px;cursor:pointer}
 .aceite input{width:18px;height:18px;margin-top:2px;flex:0 0 auto;accent-color:var(--laranja)}
+
+/* selects com rótulo longo nunca empurram a tela para o lado */
+.filtros select,.campo select{max-width:100%;min-width:0}
+.ajuda{color:var(--cinza);font-size:13px;line-height:1.45}
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.secao-acoes{display:flex;gap:8px;flex-wrap:wrap}
+
+/* oferta / voucher do prestador */
+.oferta{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:16px 0 0;padding:10px 14px;border-radius:10px;
+  background:var(--chip-alerta-bg);border:1px solid var(--chip-alerta-borda);color:var(--chip-alerta-fg);font-size:15px}
+.oferta-val{font-size:13px;opacity:.85}
+.card-oferta{margin:-8px 0 14px;font-size:13px;font-weight:700;color:var(--chip-alerta-fg)}
+
+/* avaliação em 5 métricas */
+.metricas{background:var(--branco);border:1px solid var(--linha);border-radius:12px;padding:16px 18px;margin-bottom:14px;
+  display:flex;flex-direction:column;gap:8px}
+.metrica{display:grid;grid-template-columns:minmax(0,1fr) 30% 34px;align-items:center;gap:10px;font-size:14px}
+.metrica-rot{color:var(--tinta);font-weight:600}
+.metrica-barra{height:8px;border-radius:8px;background:var(--chip-cinza-bg);overflow:hidden}
+.metrica-barra i{display:block;height:100%;background:var(--laranja);border-radius:8px}
+.metrica-v{text-align:right;font-weight:800;color:var(--tinta)}
+.metrica-ind{margin:4px 0 0;color:var(--cinza);font-size:14px}
+.avaliacao-metricas{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--cinza)}
+.avaliacao-metricas b{color:var(--tinta)}
+.nota-grupo{border:1px solid var(--linha);border-radius:12px;padding:12px 14px 14px;margin:0;min-width:0}
+.nota-grupo legend{font-weight:700;font-size:15px;color:var(--tinta);padding:0 6px}
+.nota-grupo legend small{display:block;font-weight:500;font-size:13px;color:var(--cinza);margin-top:2px}
+.nota-opcoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.nota-op{position:relative;cursor:pointer}
+.nota-op input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.nota-op span[aria-hidden]{display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;
+  border:1px solid var(--linha);font-weight:800;font-size:16px;color:var(--tinta);background:var(--branco)}
+.nota-op:hover span[aria-hidden]{border-color:var(--laranja)}
+.nota-op input:focus-visible + span{outline:2px solid var(--laranja);outline-offset:2px}
+.nota-op input:checked + span{background:var(--laranja);border-color:var(--laranja);color:#fff}
+
+/* números do painel e do uso */
+.painel-numeros{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:12px;margin:14px 0}
+.painel-num{background:var(--branco);border:1px solid var(--linha);border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+.painel-num b{font-size:26px;color:var(--azul);line-height:1.1}
+.painel-num b.painel-oferta{font-size:17px}
+.painel-num span{color:var(--cinza);font-size:14px}
+.periodo{display:flex;gap:6px;flex-wrap:wrap}
+.tabela-rolagem{overflow-x:auto;max-width:100%}
+.perfil-head>div{min-width:0}
+.perfil-nome,.perfil-cat{overflow-wrap:anywhere}
+.perfil-nota{flex-wrap:wrap}
+@media (max-width:400px){.perfil{padding:20px 16px}.perfil-icone{font-size:40px}.form-box{padding:20px 16px}}
+/* admin: cartões de categoria/região cabem em 320 px (lista cresceu para 39) */
+.cat-lista{grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr))}
+.cat-card{flex-wrap:wrap;min-width:0}
+.cat-card form:first-child{flex:1 1 200px;min-width:0}
+.cat-card-nome{flex:1;min-width:0}
+/* notas 1–5 numa linha só, de 320 px em diante */
+.nota-opcoes{flex-wrap:nowrap}
+.nota-op{flex:1 1 0;min-width:0;max-width:56px}
+.nota-op span[aria-hidden]{width:100%}
+/* campos nunca passam da borda do cartão */
+.campo input,.campo select,.campo textarea{box-sizing:border-box;width:100%;min-width:0}
+.grid-2>*{min-width:0}

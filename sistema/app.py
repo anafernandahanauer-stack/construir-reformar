@@ -16,7 +16,9 @@ import api_auth
 import busca_sinonimos
 import db
 import nomes_cards
+import taxonomia
 import uploads
+import uso
 
 app = Flask(__name__)
 
@@ -42,6 +44,28 @@ if not _segredo and NUVEM:
 app.secret_key = _segredo or "dev-only-troque-em-producao"
 if BANCO_EFEMERO:
     print("AVISO: Cloud Run sem DATABASE_URL — banco SQLite descartável; cadastros fechados até configurar o Postgres.")
+
+
+# Carimbo de versão no endereço dos arquivos estáticos (/static/style.css?v=…):
+# o service worker guarda /static/ em cache para sempre, então só um endereço
+# novo faz o navegador buscar o CSS/JS que mudou.
+_CARIMBOS = {}
+
+
+@app.url_defaults
+def _carimbo_estatico(endpoint, valores):
+    if endpoint != "static" or "filename" not in valores or "v" in valores:
+        return
+    nome = valores["filename"]
+    if nome not in _CARIMBOS:
+        import hashlib
+        try:
+            with open(os.path.join(app.static_folder, nome), "rb") as arq:
+                _CARIMBOS[nome] = hashlib.sha1(arq.read()).hexdigest()[:10]
+        except OSError:
+            _CARIMBOS[nome] = ""
+    if _CARIMBOS[nome] and nome != "sw.js":
+        valores["v"] = _CARIMBOS[nome]
 
 
 @app.template_filter("data")
@@ -245,25 +269,59 @@ def _prestador_enxuto(p):
     }
 
 
+# As 5 métricas da avaliação, na ordem definida pelo Vitor (a mesma da vitrine).
+METRICAS = [
+    ("m_atendimento", "Atendimento", "Educação, pontualidade e retorno das mensagens."),
+    ("m_qualidade", "Qualidade e quantidade", "O serviço ficou bem feito e no tamanho combinado."),
+    ("m_seguranca", "Inspeção e segurança", "Cuidado com a obra, com as pessoas e com a limpeza."),
+    ("m_resolveu", "Resolveu a demanda", "O problema que motivou a contratação foi resolvido."),
+    ("m_indicaria", "Indicaria", "O quanto você indicaria para um amigo ou parente."),
+]
+CAMPOS_METRICAS = [m[0] for m in METRICAS]
+
+
 def stats_aprovadas(prestador_id):
-    return db.query(
-        "SELECT COUNT(*) AS n, COALESCE(ROUND(AVG(nota),1),0) AS media "
-        "FROM avaliacoes WHERE prestador_id = ? AND status = 'aprovada'",
+    medias = ", ".join(f"AVG({c}) AS {c}" for c in CAMPOS_METRICAS)
+    r = db.query(
+        "SELECT COUNT(*) AS n, COALESCE(ROUND(AVG(nota),1),0) AS media, "
+        "COUNT(m_atendimento) AS n_metricas, "
+        "SUM(CASE WHEN m_indicaria >= 4 THEN 1 ELSE 0 END) AS n_indicam, "
+        f"{medias} FROM avaliacoes WHERE prestador_id = ? AND status = 'aprovada'",
         (prestador_id,), one=True,
     )
+    s = {"n": int(r["n"] or 0), "media": float(r["media"] or 0), "n_metricas": int(r["n_metricas"] or 0)}
+    s["notas"] = ([round(float(r[c]), 1) for c in CAMPOS_METRICAS] if s["n_metricas"] else None)
+    s["indica"] = round(100 * int(r["n_indicam"] or 0) / s["n_metricas"]) if s["n_metricas"] else None
+    return s
+
+
+def oferta_ativa(p):
+    """Texto da oferta do prestador se estiver valendo hoje; senão None."""
+    texto = (p["oferta_texto"] or "").strip()
+    if not texto:
+        return None
+    validade = (p["oferta_validade"] or "").strip()
+    if validade and validade < uso._hoje():
+        return None
+    return texto
+
+
+app.jinja_env.globals["oferta_ativa"] = oferta_ativa  # usado também pelos macros
 
 
 @app.context_processor
 def inject_globals():
     return {"todas_categorias": categorias(), "todas_regioes": regioes(),
+            "categorias_em_grupos": lambda: taxonomia.agrupar(categorias()),
             "usuario": usuario_atual(), "csrf_token": session.get("csrf", ""),
-            "legal": LEGAL}
+            "legal": LEGAL, "hoje": uso._hoje(), "metricas": METRICAS,
+            "oferta_ativa": oferta_ativa}
 
 
 # ---------------------------------------------------------------- termos e privacidade (LGPD)
 # Versão dos textos: suba a data quando /termos ou /privacidade mudarem de conteúdo —
 # o aceite de cada conta guarda a versão que a pessoa leu.
-TERMOS_VERSAO = "2026-10-11"
+TERMOS_VERSAO = "2026-11-03"
 LEGAL = {
     "controlador": os.environ.get("CONTROLADOR_NOME", "VZP Engenharia / Base Empreendimentos"),
     "cnpj": os.environ.get("CONTROLADOR_CNPJ", "").strip(),
@@ -276,10 +334,14 @@ def _aceitou_termos(form):
     return form.get("aceite_termos") == "1"
 
 
-def _registrar_aceite(uid):
+def _agora_utc():
     from datetime import datetime, timezone
-    db.execute("UPDATE usuarios SET aceite_termos_em = ?, aceite_termos_versao = ? WHERE id = ?",
-               (datetime.now(timezone.utc).isoformat(timespec="seconds"), TERMOS_VERSAO, uid))
+    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def _email_duplicado(erro):
+    """IntegrityError de e-mail repetido (duas abas cadastrando ao mesmo tempo)."""
+    return "email" in str(erro).lower() or "unique" in str(erro).lower()
 
 
 # ---------------------------------------------------------------- público
@@ -317,6 +379,7 @@ def prestadores():
     cat_slug = request.args.get("categoria", "").strip()
     regiao_slug = request.args.get("regiao", "").strip()
     verificado = request.args.get("verificado", "")
+    com_oferta = request.args.get("oferta", "")
 
     def _montar_sql(usar_busca):
         sql = """
@@ -354,6 +417,10 @@ def prestadores():
             params.append(regiao_slug)
         if verificado == "1":
             sql += " AND p.verificado = 1"
+        if com_oferta == "1":
+            sql += (" AND COALESCE(p.oferta_texto, '') <> ''"
+                    " AND (COALESCE(p.oferta_validade, '') = '' OR p.oferta_validade >= ?)")
+            params.append(uso._hoje())
         sql += " GROUP BY p.id, c.id, r.id ORDER BY p.verificado DESC, media DESC, n_avaliacoes DESC, p.nome"
         return sql, params
 
@@ -364,6 +431,10 @@ def prestadores():
     # nunca deve deixar a tela vazia - mostra tudo (respeitando categoria/regiao/
     # verificado que a pessoa ja tiver escolhido) com um aviso, em vez de nada.
     busca_sem_resultado = bool(busca) and not rows
+    if busca:
+        uso.contar("busca", "sistema")
+        if busca_sem_resultado and uso.limpar_termo(busca):
+            uso.contar("busca_vazia", uso.limpar_termo(busca))
     if busca_sem_resultado:
         sql, params = _montar_sql(usar_busca=False)
         rows = db.query(sql, params)
@@ -373,6 +444,7 @@ def prestadores():
     return render_template("prestadores.html", prestadores=rows, busca=busca,
                            busca_sem_resultado=busca_sem_resultado,
                            cat_slug=cat_slug, cat_atual=cat_atual, verificado=verificado,
+                           com_oferta=com_oferta,
                            regiao_slug=regiao_slug, regiao_atual=regiao_atual)
 
 
@@ -390,12 +462,29 @@ def prestador(pid):
     p = dict(row)
     s = stats_aprovadas(pid)
     p["n_avaliacoes"], p["media"] = s["n"], s["media"]
+    uso.contar("ficha", pid)
     avaliacoes = db.query(
         "SELECT * FROM avaliacoes WHERE prestador_id = ? AND status = 'aprovada' ORDER BY criado_em DESC",
         (pid,),
     )
     fotos = db.query("SELECT * FROM prestador_fotos WHERE prestador_id = ? ORDER BY criado_em DESC", (pid,))
-    return render_template("prestador.html", p=p, avaliacoes=avaliacoes, fotos=fotos)
+    u = usuario_atual()
+    ja_avaliou = bool(u and db.query(
+        "SELECT 1 FROM avaliacoes WHERE prestador_id = ? AND usuario_id = ? AND status IN ('pendente','aprovada')",
+        (pid, u["id"]), one=True))
+    return render_template("prestador.html", p=p, stats=s, avaliacoes=avaliacoes, fotos=fotos,
+                           ja_avaliou=ja_avaliou, oferta=oferta_ativa(p))
+
+
+@app.route("/prestador/<int:pid>/whatsapp")
+def ir_whatsapp(pid):
+    """Conta o clique (anônimo) e leva para a conversa no WhatsApp."""
+    p = db.query("SELECT whatsapp FROM prestadores WHERE id = ?", (pid,), one=True)
+    numero = re.sub(r"\D", "", (p["whatsapp"] if p else "") or "")
+    if not numero:
+        abort(404)
+    uso.contar("whatsapp", pid)
+    return redirect(f"https://wa.me/{numero}")
 
 
 @app.route("/prestador/<int:pid>/avaliar", methods=["POST"])
@@ -404,25 +493,31 @@ def avaliar(pid):
     if not db.query("SELECT 1 FROM prestadores WHERE id = ?", (pid,), one=True):
         abort(404)
     u = usuario_atual()
-    comentario = request.form.get("comentario", "").strip()
-    try:
-        nota = int(request.form.get("nota", 0))
-    except ValueError:
-        nota = 0
-    if nota < 1 or nota > 5:
-        flash("Escolha uma nota de 1 a 5.", "erro")
+    if u["prestador_id"] == pid:
+        flash("Você não pode avaliar o seu próprio negócio.", "erro")
         return redirect(url_for("prestador", pid=pid))
-    arquivo_foto = request.files.get("foto")
-    foto_url = uploads.upload_imagem(arquivo_foto)
-    if arquivo_foto and arquivo_foto.filename and not foto_url:
-        flash("A indicação foi enviada, mas a foto não pôde ser enviada "
-              "(confira se é uma imagem de até 10MB).", "erro")
+    if db.query("SELECT 1 FROM avaliacoes WHERE prestador_id = ? AND usuario_id = ? AND status IN ('pendente','aprovada')",
+                (pid, u["id"]), one=True):
+        flash("Você já avaliou este prestador. Cada conta avalia uma vez.", "erro")
+        return redirect(url_for("prestador", pid=pid))
+    comentario = request.form.get("comentario", "").strip()[:2000]
+    notas = []
+    for campo in CAMPOS_METRICAS:
+        try:
+            v = int(request.form.get(campo, 0))
+        except ValueError:
+            v = 0
+        notas.append(v)
+    if any(v < 1 or v > 5 for v in notas):
+        flash("Dê uma nota de 1 a 5 em cada uma das cinco métricas.", "erro")
+        return redirect(url_for("prestador", pid=pid) + "#avaliar")
+    nota = max(1, min(5, int(sum(notas) / len(notas) + 0.5)))  # média arredondada
     db.execute(
-        "INSERT INTO avaliacoes (prestador_id, usuario_id, autor, nota, comentario, foto_url, status) "
-        "VALUES (?,?,?,?,?,?, 'pendente')",
-        (pid, u["id"], u["nome"], nota, comentario, foto_url),
+        "INSERT INTO avaliacoes (prestador_id, usuario_id, autor, nota, comentario, status, "
+        + ", ".join(CAMPOS_METRICAS) + ") VALUES (?,?,?,?,?, 'pendente', ?,?,?,?,?)",
+        (pid, u["id"], u["nome"], nota, comentario, *notas),
     )
-    flash("Indicação enviada! Ela passará por moderação antes de aparecer no perfil.", "ok")
+    flash("Avaliação enviada! Ela passa por moderação antes de aparecer no perfil.", "ok")
     return redirect(url_for("prestador", pid=pid))
 
 
@@ -475,16 +570,25 @@ def cadastro():
             nome = nome_ajustado
 
         foto_url = uploads.upload_imagem(request.files.get("foto"))
-        pid = db.execute(
-            """INSERT INTO prestadores (nome, categoria_id, regiao_id, telefone, whatsapp, descricao, foto_url)
-               VALUES (?,?,?,?,?,?,?)""",
-            (nome, categoria_id, regiao_id, telefone, whatsapp, descricao, foto_url),
-        )
-        uid = db.execute(
-            "INSERT INTO usuarios (nome, email, senha_hash, papel, prestador_id) VALUES (?,?,?, 'prestador', ?)",
-            (nome, email, generate_password_hash(senha), pid),
-        )
-        _registrar_aceite(uid)
+        # Ficha, conta e aceite numa transação só: ou entra tudo, ou nada —
+        # nunca sobra ficha sem dono nem conta sem aceite.
+        try:
+            with db.transacao() as t:
+                pid = t.execute(
+                    """INSERT INTO prestadores (nome, categoria_id, regiao_id, telefone, whatsapp, descricao, foto_url)
+                       VALUES (?,?,?,?,?,?,?)""",
+                    (nome, categoria_id, regiao_id, telefone, whatsapp, descricao, foto_url),
+                )
+                uid = t.execute(
+                    "INSERT INTO usuarios (nome, email, senha_hash, papel, prestador_id, "
+                    "aceite_termos_em, aceite_termos_versao) VALUES (?,?,?, 'prestador', ?,?,?)",
+                    (nome, email, generate_password_hash(senha), pid, _agora_utc(), TERMOS_VERSAO),
+                )
+        except Exception as e:
+            if not _email_duplicado(e):
+                raise
+            flash("Já existe uma conta com esse e-mail.", "erro")
+            return render_template("cadastro.html", form=f)
         session["usuario_id"] = uid
         flash("Cadastro realizado! Gerencie seu perfil por aqui.", "ok")
         return redirect(url_for("painel"))
@@ -514,11 +618,17 @@ def conta_cadastro():
         if db.query("SELECT 1 FROM usuarios WHERE email = ?", (email,), one=True):
             flash("Já existe uma conta com esse e-mail.", "erro")
             return render_template("conta_cadastro.html", form=f)
-        uid = db.execute(
-            "INSERT INTO usuarios (nome, email, senha_hash, papel) VALUES (?,?,?, 'cliente')",
-            (nome, email, generate_password_hash(senha)),
-        )
-        _registrar_aceite(uid)
+        try:
+            uid = db.execute(
+                "INSERT INTO usuarios (nome, email, senha_hash, papel, aceite_termos_em, aceite_termos_versao) "
+                "VALUES (?,?,?, 'cliente', ?,?)",
+                (nome, email, generate_password_hash(senha), _agora_utc(), TERMOS_VERSAO),
+            )
+        except Exception as e:
+            if not _email_duplicado(e):
+                raise
+            flash("Já existe uma conta com esse e-mail.", "erro")
+            return render_template("conta_cadastro.html", form=f)
         session["usuario_id"] = uid
         flash("Conta criada! Agora você pode indicar e avaliar prestadores.", "ok")
         return redirect(url_for("index"))
@@ -546,45 +656,83 @@ def privacidade():
 # nunca e-mail de login, senha, telefone fixo ou avaliação pendente.
 VITRINE_ORIGEM = os.environ.get("VITRINE_ORIGEM", "https://anafernandahanauer-stack.github.io").rstrip("/")
 
-# slug do Flask -> slug da taxonomia de 36 categorias da vitrine
-SLUG_VITRINE = {
-    "pedreiro": "pedreiro", "eletricista": "eletricista", "encanador": "encanador",
-    "pintor": "pintor", "marceneiro": "marceneiro", "serralheiro": "serralheiro",
-    "terraplenagem": "terraplenagem", "locacao": "locacao-equipamentos",
-    "gesso": "gesso-drywall", "engenharia": "projeto-engenharia",
-    "materiais": "materiais-construcao", "limpeza": "limpeza-pos-obra",
-}
-
-
 @app.route("/api/vitrine/prestadores.json")
 def api_vitrine_prestadores():
     rows = db.query("""
-        SELECT p.id, p.nome, p.whatsapp, p.descricao, p.verificado,
-               c.slug AS categoria_slug, r.nome AS regiao_nome, r.uf AS regiao_uf,
-               COUNT(a.id) AS n, COALESCE(ROUND(AVG(a.nota),1),0) AS media
+        SELECT p.id, p.nome, p.whatsapp, p.descricao, p.verificado, p.oferta_texto, p.oferta_validade,
+               c.slug AS categoria_slug, c.nome AS categoria_nome, r.nome AS regiao_nome, r.uf AS regiao_uf
         FROM prestadores p
         JOIN categorias c ON c.id = p.categoria_id
         LEFT JOIN regioes r ON r.id = p.regiao_id
-        LEFT JOIN avaliacoes a ON a.prestador_id = p.id AND a.status = 'aprovada'
-        GROUP BY p.id, c.id, r.id
         ORDER BY p.verificado DESC, p.nome
     """)
+    # estatísticas de todas as fichas numa consulta só
+    medias = ", ".join(f"AVG({c}) AS {c}" for c in CAMPOS_METRICAS)
+    stats = {r["prestador_id"]: r for r in db.query(
+        "SELECT prestador_id, COUNT(*) AS n, COALESCE(ROUND(AVG(nota),1),0) AS media, "
+        "COUNT(m_atendimento) AS n_metricas, "
+        "SUM(CASE WHEN m_indicaria >= 4 THEN 1 ELSE 0 END) AS n_indicam, "
+        f"{medias} FROM avaliacoes WHERE status = 'aprovada' GROUP BY prestador_id")}
+    slugs = {}
     saida = []
     for r in rows:
-        saida.append({
-            "slug": SLUG_VITRINE.get(r["categoria_slug"], r["categoria_slug"]),
+        chave = (r["categoria_slug"], r["categoria_nome"])
+        if chave not in slugs:
+            slugs[chave] = taxonomia.slug_vitrine(*chave)
+        if not slugs[chave]:
+            continue  # categoria sem equivalente na taxonomia: a vitrine não teria onde mostrar
+        st = stats.get(r["id"])
+        ficha = {
+            "id": r["id"],
+            "slug": slugs[chave],
             "marca": r["nome"], "resp": None,
             "cidade": f'{r["regiao_nome"]}/{r["regiao_uf"]}' if r["regiao_nome"] else "Mato Grosso",
             "escopo": r["descricao"] or "",
             "whats": re.sub(r"\D", "", r["whatsapp"] or "") or None,
             "verif": bool(r["verificado"]),
-            "n": int(r["n"]), "media": float(r["media"]),
+            "n": int(st["n"]) if st else 0, "media": float(st["media"]) if st else 0.0,
+            "voucher": oferta_ativa(r),
             "url": url_for("prestador", pid=r["id"], _external=True),
-        })
+        }
+        if st and int(st["n_metricas"] or 0):
+            ficha["notas"] = [round(float(st[c]), 1) for c in CAMPOS_METRICAS]
+            ficha["indica"] = round(100 * int(st["n_indicam"] or 0) / int(st["n_metricas"]))
+        saida.append(ficha)
     resp = jsonify(saida)
     resp.headers["Access-Control-Allow-Origin"] = VITRINE_ORIGEM
     resp.headers["Vary"] = "Origin"
     resp.headers["Cache-Control"] = "public, max-age=300"
+    return resp
+
+
+@app.route("/api/vitrine/evento", methods=["POST", "OPTIONS"])
+def api_vitrine_evento():
+    """A vitrine avisa, sem identificar ninguém, quando uma busca não acha nada
+    ou quando alguém toca em "Falar no WhatsApp". Só aceita a origem da vitrine."""
+    resp = jsonify({"ok": True})
+    resp.headers["Access-Control-Allow-Origin"] = VITRINE_ORIGEM
+    resp.headers["Vary"] = "Origin"
+    if request.method == "OPTIONS":
+        resp.headers["Access-Control-Allow-Methods"] = "POST"
+        resp.headers["Access-Control-Allow-Headers"] = "Content-Type"
+        return resp
+    if request.headers.get("Origin", "").rstrip("/") != VITRINE_ORIGEM:
+        return jsonify({"erro": "origem não autorizada"}), 403
+    dados = request.get_json(force=True, silent=True) or {}
+    tipo = dados.get("tipo")
+    if tipo == "busca":
+        uso.contar("busca", "vitrine")
+    elif tipo == "busca_vazia":
+        termo = uso.limpar_termo(str(dados.get("termo", "")))
+        if termo:
+            uso.contar("busca_vazia", termo)
+    elif tipo == "whatsapp":
+        try:
+            pid = int(dados.get("id"))
+        except (TypeError, ValueError):
+            pid = 0
+        if pid and db.query("SELECT 1 FROM prestadores WHERE id = ?", (pid,), one=True):
+            uso.contar("whatsapp", pid)
     return resp
 
 
@@ -633,7 +781,8 @@ def painel():
     )
     fotos = db.query("SELECT * FROM prestador_fotos WHERE prestador_id = ? ORDER BY criado_em DESC", (p["id"],))
     pendentes = sum(1 for a in avaliacoes if a["status"] == "pendente")
-    return render_template("painel.html", p=p, stats=s, avaliacoes=avaliacoes, pendentes=pendentes, fotos=fotos)
+    return render_template("painel.html", p=p, stats=s, avaliacoes=avaliacoes, pendentes=pendentes, fotos=fotos,
+                           cliques=uso.cliques_prestador(p["id"]), oferta=oferta_ativa(p))
 
 
 def _atualizar_dados_prestador(pid, form, arquivo_foto):
@@ -644,9 +793,15 @@ def _atualizar_dados_prestador(pid, form, arquivo_foto):
     regiao_id = resolver_regiao(form)
     if not (nome and categoria_id and regiao_id):
         return False
-    campos = "nome=?, categoria_id=?, regiao_id=?, telefone=?, whatsapp=?, descricao=?"
+    oferta_texto = form.get("oferta_texto", "").strip()[:120]
+    oferta_validade = form.get("oferta_validade", "").strip()
+    if not re.fullmatch(r"\d{4}-\d{2}-\d{2}", oferta_validade or "x"):
+        oferta_validade = ""
+    campos = ("nome=?, categoria_id=?, regiao_id=?, telefone=?, whatsapp=?, descricao=?, "
+              "oferta_texto=?, oferta_validade=?")
     valores = [nome, categoria_id, regiao_id, form.get("telefone", "").strip(),
-               form.get("whatsapp", "").strip(), form.get("descricao", "").strip()]
+               form.get("whatsapp", "").strip(), form.get("descricao", "").strip(),
+               oferta_texto, oferta_validade if oferta_texto else ""]
     if arquivo_foto and arquivo_foto.filename:
         foto_url = uploads.upload_imagem(arquivo_foto)
         if foto_url:
@@ -736,6 +891,17 @@ def admin_painel():
            ORDER BY p.verificado DESC, p.nome"""
     )
     return render_template("admin.html", pendentes=pendentes, prestadores=prestadores)
+
+
+@app.route("/admin/uso")
+@admin_required
+def admin_uso():
+    try:
+        dias = int(request.args.get("dias", 30))
+    except ValueError:
+        dias = 30
+    dias = dias if dias in (7, 30, 90) else 30
+    return render_template("admin_uso.html", r=uso.resumo(dias))
 
 
 @app.route("/admin/avaliacao/<int:aid>/<acao>", methods=["POST"])
@@ -1177,6 +1343,7 @@ def api_avaliacoes_pendentes():
         limite = 50
     rows = db.query(
         """SELECT a.id, a.autor, a.nota, a.comentario, a.criado_em,
+                  a.m_atendimento, a.m_qualidade, a.m_seguranca, a.m_resolveu, a.m_indicaria,
                   p.id AS prestador_id, p.nome AS prestador_nome
            FROM avaliacoes a JOIN prestadores p ON p.id = a.prestador_id
            WHERE a.status = 'pendente' ORDER BY a.criado_em LIMIT ?""",

@@ -12,22 +12,8 @@ Em produção, sem ADMIN_SENHA, nenhuma conta admin é criada com senha padrão.
 """
 import os
 import db
+import taxonomia
 from werkzeug.security import generate_password_hash
-
-CATEGORIAS = [
-    ("Pedreiro / Alvenaria", "pedreiro", "🧱"),
-    ("Eletricista", "eletricista", "⚡"),
-    ("Encanador / Hidráulica", "encanador", "🚿"),
-    ("Pintor", "pintor", "🎨"),
-    ("Marceneiro / Móveis", "marceneiro", "🪚"),
-    ("Serralheiro / Estruturas", "serralheiro", "🔩"),
-    ("Terraplenagem / Máquinas", "terraplenagem", "🚜"),
-    ("Locação de Equipamentos", "locacao", "🏗️"),
-    ("Gesso / Drywall", "gesso", "🧰"),
-    ("Projeto e Engenharia", "engenharia", "📐"),
-    ("Materiais de Construção", "materiais", "🏬"),
-    ("Limpeza Pós-Obra", "limpeza", "🧹"),
-]
 
 PRESTADORES = [
     ("Construtora Nova Era", "pedreiro", "(66) 3544-1010", "5566991110010",
@@ -72,9 +58,11 @@ AVALIACOES = [
 
 
 def ensure_categorias():
-    for nome, slug, icone in CATEGORIAS:
-        if not db.query("SELECT 1 FROM categorias WHERE slug = ?", (slug,), one=True):
-            db.execute("INSERT INTO categorias (nome, slug, icone) VALUES (?,?,?)", (nome, slug, icone))
+    """As categorias vêm da taxonomia única (categorias-agrupadas.json), a mesma
+    da vitrine. Categorias antigas são reaproveitadas, nunca duplicadas."""
+    n = taxonomia.sincronizar(db)
+    if n:
+        print(f"Seed: {n} categoria(s) da taxonomia criada(s).")
 
 
 def ensure_regioes():
@@ -107,6 +95,8 @@ def ensure_admin():
 
 def seed_demo():
     cat_id = {r["slug"]: r["id"] for r in db.query("SELECT id, slug FROM categorias")}
+    for velho, novo in taxonomia.ALIAS.items():
+        cat_id.setdefault(velho, cat_id.get(novo))
     regiao_id = db.query("SELECT id FROM regioes WHERE slug = ?", ("sorriso-mt",), one=True)["id"]
     prest_id = {}
     for nome, slug, tel, wpp, desc, verif in PRESTADORES:

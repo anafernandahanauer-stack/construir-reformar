@@ -830,7 +830,7 @@ function tema(){
 <section class="wrap" id="grupos">
   <div class="shead">
     <div class="snum">01 — Categorias</div>
-    <h2>Seis grupos, <em>36</em> categorias</h2>
+    <h2>Sete grupos, <em>39</em> categorias</h2>
     <p class="sub">Ordem cronológica da obra, não alfabética. Clique para abrir.</p>
   </div>
   <div class="gwrap" id="gwrap"></div>
@@ -941,9 +941,9 @@ function tema(){
     </div>
 
     <div class="prop-num">
-      <div><b>6</b><span>grupos na ordem<br>da obra</span></div>
-      <div><b>36</b><span>categorias<br>mapeadas</span></div>
-      <div><b>1.054</b><span>termos informais<br>reconhecidos</span></div>
+      <div><b>7</b><span>grupos na ordem<br>da obra</span></div>
+      <div><b>39</b><span>categorias<br>mapeadas</span></div>
+      <div><b>1.121</b><span>termos informais<br>reconhecidos</span></div>
       <div><b>MT</b><span>foco atual,<br>com apoio nacional</span></div>
     </div>
   </div>
@@ -986,6 +986,7 @@ function go(enter){
   const q=document.getElementById('q').value, box=document.getElementById('res');
   if(!q.trim()){box.innerHTML='';return}
   const r=buscar(q);
+  medirBusca(q, !r.length);
   if(!r.length){
     const s=sugerir(q);
     box.innerHTML='<div class="none">Nada encontrado para <b>'+esc(q)+'</b>.'+
@@ -1002,6 +1003,27 @@ function go(enter){
   if(enter && r.length===1) verCat(r[0].slug);
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+
+// ---- medição anônima: só contadores no sistema (sem cookie, sem identificar ninguém) ----
+// Conta a busca quando a pessoa para de digitar, uma vez por termo; termos que
+// não acham nada viram sinônimos a ensinar. Sem sistemaUrl, não envia nada.
+function evento(dados){
+  const s=((window.CONFIG||{}).sistemaUrl||'').replace(/\/+$/,'');
+  if(!s||!navigator.sendBeacon)return;
+  try{navigator.sendBeacon(s+'/api/vitrine/evento',new Blob([JSON.stringify(dados)],{type:'text/plain'}))}catch(e){}
+}
+let medT=null, medUlt='';
+function medirBusca(q, vazio){
+  clearTimeout(medT);
+  medT=setTimeout(()=>{
+    const t=q.trim().toLowerCase(); if(t.length<3||t===medUlt)return; medUlt=t;
+    evento({tipo:'busca'}); if(vazio) evento({tipo:'busca_vazia',termo:t});
+  },1500);
+}
+document.addEventListener('click',e=>{
+  const a=e.target.closest&&e.target.closest('a.btn-whats[data-id]');
+  if(a) evento({tipo:'whatsapp',id:Number(a.dataset.id)});
+});
 
 // grupos
 const L2S=Object.fromEntries(Object.entries(CATS).map(([k,v])=>[v.label,k]));
@@ -1125,7 +1147,7 @@ function cardHTML(p){
       (p.end?'<div class="card-end">'+IC.pin+'<span>'+esc(p.end)+'</span></div>':'')+
       '<hr class="linha-azul">'+
       '<div class="card-contatos">'+
-        (p.whats?'<a class="btn-whats" href="https://wa.me/'+esc(p.whats)+'" rel="noopener">'+
+        (p.whats?'<a class="btn-whats" href="https://wa.me/'+esc(p.whats)+'"'+(p.id?' data-id="'+Number(p.id)+'"':'')+' rel="noopener">'+
         IC.whats+'Falar no WhatsApp</a>':
         '<span class="btn-whats inativo" aria-disabled="true">'+IC.whats+'WhatsApp do prestador</span>')+
         '<div class="redes">'+redes+'</div>'+

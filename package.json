@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npx --yes serve . -l 5173",
     "dev": "npx --yes serve . -l 5173",
-    "test": "python3 motor/teste_busca.py"
+    "test": "python3 sistema/teste_busca.py && python3 motor/gen_js.py --check"
   },
   "license": "UNLICENSED"
 }

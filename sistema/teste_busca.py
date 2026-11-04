@@ -6,7 +6,7 @@ de slugs, quando o termo e legitimamente ambiguo: quem digita "areia" pode
 querer a mineradora (volume) ou o deposito (saco) — as duas respostas estao
 certas e o teste nao deve fingir que so uma serve.
 
-Cobre as 36 categorias com termo informal, frase de sintoma, erro de grafia,
+Cobre as categorias da taxonomia com termo informal, frase de sintoma, erro de grafia,
 hifen e pergunta em linguagem natural.
 
     python teste_busca.py          # resumo
@@ -55,7 +55,7 @@ CASOS = [
     ("esgoto entupido", "encanador"),
     ("desentupimento", "encanador"),
     ("torneira pingando", "encanador"),
-    ("botijao", "sistema-de-gas"),
+    ("botijao", ("sistema-de-gas", "gas-revenda")),
     ("central de gas", "sistema-de-gas"),
     ("cheiro de gas", "sistema-de-gas"),
     ("ar condicionado", "sistema-de-ar"),

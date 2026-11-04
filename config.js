@@ -6,7 +6,7 @@ window.CONFIG = {
   // Ex.: 'https://construir-reformar-xxxxx.a.run.app'
   // Só com ele preenchido, o botão de cadastro vai para <sistema>/cadastro
   // e as fichas reais vêm de <sistema>/api/vitrine/prestadores.json.
-  sistemaUrl: '',
+  sistemaUrl: 'https://construir-reformar-898146672742.southamerica-east1.run.app',
 
   // Opcionais — só preencha para fugir do padrão acima:
   cadastroUrl: '',       // outro formulário de cadastro

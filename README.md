@@ -13,7 +13,7 @@ Uma iniciativa VZP Engenharia / Base Empreendimentos.
 ```
 construir-reformar/
 ├── index.html          → o site inteiro (HTML + CSS + JavaScript em um único arquivo)
-├── dados.js            → taxonomia e motor de busca por sinônimos (gerado a partir de motor/)
+├── dados.js            → taxonomia e motor de busca por sinônimos (gerado por motor/gen_js.py)
 ├── config.js           → ÚNICO arquivo a editar: canal de cadastro e lista de fichas reais
 ├── INTEGRACAO.md       → como a vitrine se liga ao sistema Flask
 ├── LANCAMENTO.md       → roteiro de abertura: quem faz o quê, em que ordem
@@ -23,12 +23,13 @@ construir-reformar/
 ├── manifest.json       → ficha de identidade do app para o sistema poder "instalá-lo"
 ├── service-worker.js   → permite abrir o app já instalado mesmo sem internet
 ├── icons/              → ícone do app em todos os tamanhos + imagem de compartilhamento (og-image)
-├── motor/              → fonte da verdade da busca: categorias-agrupadas.json, busca_sinonimos.py,
-│                         nomes_cards.py (padrão "Marca (Responsável)") e teste_busca.py
+├── motor/gen_js.py     → gera o topo do dados.js a partir da taxonomia única, que mora em
+│                         sistema/categorias-agrupadas.json (a mesma do cadastro)
 ├── sistema/          → o sistema Flask + Postgres (cadastro, login, painel, moderação, API do conector).
 │                         Publica no Cloud Run a partir desta pasta — ver sistema/DEPLOY.md
 ├── package.json        → atalhos para rodar localmente e testar a busca (não é obrigatório)
-├── robots.txt / .nojekyll
+├── _config.yml         → tira sistema/, motor/ e as notas internas do site publicado
+├── robots.txt
 └── .gitignore
 ```
 
@@ -50,7 +51,9 @@ python3 -m http.server 5173
 
 Depois abra `http://localhost:5173`.
 
-**Testar o motor de busca:** `python3 motor/teste_busca.py` (ou `npm test`).
+**Testar o motor de busca:** `python3 sistema/teste_busca.py` (ou `npm test`, que também confere se o `dados.js` está em dia com a taxonomia).
+
+**Mudou uma categoria ou um sinônimo?** Edite só `sistema/categorias-agrupadas.json` e rode `python3 motor/gen_js.py`. Vitrine e cadastro passam a usar a mesma lista.
 
 ## Ligar o cadastro
 

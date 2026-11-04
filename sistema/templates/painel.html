@@ -30,6 +30,24 @@
     <a class="link" href="{{ url_for('prestador', pid=p['id']) }}">Ver meu perfil público →</a>
   </div>
 
+  <div class="painel-numeros">
+    <div class="painel-num">
+      <b>{{ cliques }}</b>
+      <span>{{ 'pessoa chamou' if cliques == 1 else 'pessoas chamaram' }} você no WhatsApp pelo site nos últimos 30 dias</span>
+    </div>
+    <div class="painel-num">
+      {% if oferta %}
+        <b class="painel-oferta">🏷️ Oferta no ar</b>
+        <span>“{{ oferta }}”{% if p['oferta_validade'] %} — até {{ p['oferta_validade'][8:10] }}/{{ p['oferta_validade'][5:7] }}{% endif %}.
+          <a class="link" href="{{ url_for('painel_editar') }}#oferta_texto">Mudar</a></span>
+      {% else %}
+        <b class="painel-oferta">Sem oferta</b>
+        <span>Fichas com oferta ganham destaque e aparecem no filtro “Com oferta”.
+          <a class="link" href="{{ url_for('painel_editar') }}#oferta_texto">Criar uma oferta</a></span>
+      {% endif %}
+    </div>
+  </div>
+
   {% if not p['verificado'] %}
     <div class="nota-fase">
       <strong>Quer aparecer no topo?</strong> O selo <span class="selo">✔ Verificado</span> é liberado
@@ -74,12 +92,19 @@
           {{ estrelas(a['nota']) }}
           <span class="status status-{{ a['status'] }}">{{ a['status'] }}</span>
         </div>
+        {% if a['m_atendimento'] %}
+          <p class="avaliacao-metricas">
+            {% for m in metricas %}<span>{{ m[1] }} <b>{{ a[m[0]] }}</b></span>{% endfor %}
+          </p>
+        {% endif %}
         {% if a['comentario'] %}<p>{{ a['comentario'] }}</p>{% endif %}
         <span class="avaliacao-data">{{ a['criado_em']|data }}</span>
       </div>
     {% endfor %}
   {% else %}
-    <p class="vazio-inline">Você ainda não recebeu avaliações.</p>
+    <p class="vazio-inline">Você ainda não recebeu avaliações. Mande o link do seu
+      <a class="link" href="{{ url_for('prestador', pid=p['id']) }}">perfil público</a> para quem você já atendeu:
+      cada cliente avalia em cinco métricas, e a média aparece na sua ficha depois da moderação.</p>
   {% endif %}
 </section>
 

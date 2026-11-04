@@ -13,10 +13,11 @@ O sistema morava em `vitorzanchetpereira/vzp-construir-reformar-app-web` até
 14/10/2026; veio para cá com o histórico inteiro (`git log -- sistema/`), e o
 antigo foi arquivado.
 
-**Cuidado:** `motor/` (vitrine) e `sistema/` têm cada um seu
-`categorias-agrupadas.json` e `busca_sinonimos.py`, e hoje **divergem**. A
-taxonomia da vitrine é a fonte nova (36 categorias); unificar é trabalho
-pendente, não presuma que mudar um muda o outro.
+**Taxonomia única:** as categorias e os sinônimos da busca moram só em
+`sistema/categorias-agrupadas.json` (7 grupos, 39 categorias). O sistema lê esse
+arquivo direto (`taxonomia.py`, `busca_sinonimos.py`); a vitrine usa o `dados.js`,
+gerado dele por `python3 motor/gen_js.py`. Mudou o JSON? Rode o gerador e suba a
+versão do `service-worker.js`. `npm test` falha se o `dados.js` ficar para trás.
 
 ## Antes de mexer em qualquer tela
 

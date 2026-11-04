@@ -1,7 +1,7 @@
 // Service worker minimalista: cacheia só os arquivos estáticos (CSS, ícones, JS).
 // Páginas dinâmicas (com sessão/CSRF) sempre vão para a rede — nunca ficam em cache,
 // para não vazar estado entre usuários nem servir uma versão velha.
-const CACHE = "construir-reformar-static-v1";
+const CACHE = "construir-reformar-static-v2";
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
