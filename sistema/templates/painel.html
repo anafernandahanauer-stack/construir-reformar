@@ -26,7 +26,7 @@
       </div>
     </div>
     {% if p['descricao'] %}<p class="perfil-desc">{{ p['descricao'] }}</p>{% endif %}
-    <p class="mini-info">📞 {{ p['telefone'] or '—' }} &nbsp;·&nbsp; 💬 {{ p['whatsapp'] or '—' }}</p>
+    <p class="mini-info">Telefone: {{ p['telefone'] or '—' }} &nbsp;·&nbsp; WhatsApp: {{ p['whatsapp'] or '—' }}</p>
     <a class="link" href="{{ url_for('prestador', pid=p['id']) }}">Ver meu perfil público →</a>
   </div>
 
