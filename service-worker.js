@@ -5,7 +5,7 @@
 
    Sempre que os arquivos do app forem republicados, suba o número da versão
    abaixo — isso invalida o cache antigo automaticamente. */
-const VERSAO = 'cr-v5';
+const VERSAO = 'cr-v6';
 const ARQUIVOS_DO_SHELL = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const ARQUIVOS_DO_SHELL = [
   './icons/icon-192.png',
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
+  './icons/favicon.svg',
   './dados.js',
   './config.js',
   './privacidade.html',
