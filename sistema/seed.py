@@ -60,6 +60,11 @@ AVALIACOES = [
 def ensure_categorias():
     """As categorias vêm da taxonomia única (categorias-agrupadas.json), a mesma
     da vitrine. Categorias antigas são reaproveitadas, nunca duplicadas."""
+    apagadas, com_prestador = taxonomia.limpar_copias(db)
+    if apagadas:
+        print(f"Seed: {len(apagadas)} categoria(s) repetida(s) e vazia(s) removida(s): {', '.join(apagadas)}.")
+    for aviso in com_prestador:
+        print(f"AVISO: categoria repetida com cadastro, não removida: {aviso}.")
     n = taxonomia.sincronizar(db)
     if n:
         print(f"Seed: {n} categoria(s) da taxonomia criada(s).")

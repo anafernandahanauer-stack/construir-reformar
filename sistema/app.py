@@ -890,7 +890,8 @@ def admin_painel():
            LEFT JOIN regioes r ON r.id = p.regiao_id
            ORDER BY p.verificado DESC, p.nome"""
     )
-    return render_template("admin.html", pendentes=pendentes, prestadores=prestadores)
+    return render_template("admin.html", pendentes=pendentes, prestadores=prestadores,
+                           repetidas=taxonomia.repetidas(categorias()))
 
 
 @app.route("/admin/uso")
