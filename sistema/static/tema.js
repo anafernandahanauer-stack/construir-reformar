@@ -26,32 +26,35 @@
     "--chip-erro-bg", "--chip-erro-fg", "--chip-erro-borda",
     "--chip-alerta-bg", "--chip-alerta-fg", "--chip-alerta-borda",
     "--chip-cinza-bg", "--chip-cinza-fg", "--chip-cinza-borda",
+    "--laranja-btn", "--laranja-btn-h", "--sobre-laranja", "--sobre-verde", "--verde-zap-h",
   ];
 
   var CLARO = [
-    "#f2711c", "#d65f11", "#1f3a5f", "#2b5f8f",
-    "#1c2530", "#5b6673", "#8a94a1", "#e7eaef", "#f5f7fa",
-    "#fff", "#f8fafc", "#1f9d55", "#25d366",
+    "#b04a07", "#a84606", "#1f3a5f", "#2b5f8f",
+    "#1c2531", "#616c7a", "#646e7c", "#e4e0d8", "#f3f0eb",
+    "#fff", "#f7f4ef", "#256444", "#178540",
     "0 2px 10px rgba(28,37,48,.06)", "0 8px 26px rgba(28,37,48,.10)",
-    "#e8f4ff", "#2b5f8f", "#cfe6fb",
-    "#eef7f0", "#1f9d55", "#cdeed6",
+    "#eaf0f7", "#2b5f8f", "#cfdbea",
+    "#eef7f0", "#256444", "#cdeed6",
     "#e6f7ee", "#0f7a3d", "#b7e6cb",
     "#fdecec", "#c0392b", "#f4c4c0",
     "#fff3e0", "#b25a00", "#f6d9bd",
-    "#eef1f5", "#8a94a1", "#e7eaef",
+    "#f1ede6", "#646e7c", "#e4e0d8",
+    "#c0570c", "#a84606", "#ffffff", "#ffffff", "#12702f",
   ];
 
   var ESCURO = [
-    "#ff8a4a", "#ff9d64", "#7fb0e8", "#9cc4f0",
-    "#e9edf2", "#a8b1bd", "#7e8794", "#2a333f", "#0f141b",
-    "#182029", "#1d2632", "#3ecb7c", "#25d366",
+    "#f2914e", "#f7a468", "#a8c4e6", "#bed4ef",
+    "#e7ecf2", "#98a3b2", "#8a95a3", "#2a3140", "#0a0d12",
+    "#161c26", "#171d28", "#6cb98d", "#3fc06f",
     "0 2px 10px rgba(0,0,0,.35)", "0 8px 26px rgba(0,0,0,.45)",
-    "#1c2f42", "#9cc4f0", "#2c4a68",
-    "#173627", "#3ecb7c", "#20573c",
+    "#1c2f42", "#bed4ef", "#2c4a68",
+    "#173627", "#6cb98d", "#20573c",
     "#173626", "#59d693", "#1f5738",
     "#3a1d1d", "#f28b82", "#5c2b2b",
     "#3a2a12", "#f2ab5c", "#5c4420",
-    "#232c37", "#8f98a5", "#2a333f",
+    "#232c37", "#8f98a5", "#2a3140",
+    "#f2914e", "#f7a468", "#1a0f06", "#06210f", "#5ccd86",
   ];
 
   var IDX_BRANCO = VARS.indexOf("--branco");

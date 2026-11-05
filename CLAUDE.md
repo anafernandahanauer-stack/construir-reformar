@@ -19,6 +19,15 @@ arquivo direto (`taxonomia.py`, `busca_sinonimos.py`); a vitrine usa o `dados.js
 gerado dele por `python3 motor/gen_js.py`. Mudou o JSON? Rode o gerador e suba a
 versão do `service-worker.js`. `npm test` falha se o `dados.js` ficar para trás.
 
+## Marca
+
+Símbolo oficial: **Lente de cobogó tecida**. O manual de marca (cores, tipografia,
+símbolo, assinatura, texturas, voz) é a referência de toda tela. Os arquivos de
+origem estão em `icons/simbolo.svg` (principal) e `icons/favicon.svg` (32 px, para
+qualquer uso abaixo de 40 px); os PNGs de `icons/` e `sistema/static/icons/` são
+gerados deles. Vitrine e sistema usam as mesmas cores (`--azul`, `--laranja-txt`,
+`--laranja-btn`…) e as mesmas três fontes, servidas pelo próprio site.
+
 ## Antes de mexer em qualquer tela
 
 Toda tela daqui — da vitrine e do sistema — segue a skill **`desenvolver-app-vzp`**
