@@ -51,7 +51,7 @@ Vivem **só** no Cloud Run. Nunca no repositório.
 | `DATABASE_URL` | Postgres do Supabase (pooler de São Paulo) |
 | `DB_SCHEMA` | **`construir_reformar`** — leia a armadilha abaixo |
 | `SECRET_KEY` | sessão do Flask |
-| `ADMIN_EMAIL` / `ADMIN_SENHA` | conta que modera avaliações |
+| `ADMIN_EMAIL` / `ADMIN_SENHA` | só criam o primeiro admin num banco vazio. Em produção `ADMIN_SENHA` saiu em 07/11/2026 (os admins já existem); admin novo é conta que a própria pessoa criou e outro admin promoveu em Equipe admin |
 | `CLOUDINARY_URL` | upload de fotos; sem ela o site roda, só sem imagem |
 | `CR_API_SECRET` | autentica as rotas `/api/*` (é o que o conector MCP usa) |
 | `SEED_DEMO` | `0` = produção limpa: remove os dados de demonstração do seed (filtra por nome **e** WhatsApp do seed) |

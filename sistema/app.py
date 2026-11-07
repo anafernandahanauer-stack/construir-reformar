@@ -4,6 +4,7 @@ Fase 1: diretório da oferta.  Fase 2: login do prestador, painel e moderação 
 Fase "robusto": fotos (Cloudinary), contas de cliente/indicação, multi-região, PWA.
 VZP Engenharia / Base Empreendimentos.
 """
+import json
 import os
 import re
 import secrets
@@ -15,6 +16,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 import api_auth
 import busca_sinonimos
 import db
+import historico
 import nomes_cards
 import taxonomia
 import uploads
@@ -181,10 +183,23 @@ def garantir_nome_com_papel(nome, categoria_nome):
 
 
 def usuario_atual():
+    """Conta entrada, RELIDA do banco a cada pedido: papel trocado vale na hora
+    e conta desativada cai na hora, em todo aparelho (a sessão só guarda o id)."""
     uid = session.get("usuario_id")
     if not uid:
         return None
-    return db.query("SELECT * FROM usuarios WHERE id = ?", (uid,), one=True)
+    u = db.query("SELECT * FROM usuarios WHERE id = ?", (uid,), one=True)
+    if not u or not _ativa(u):
+        session.pop("usuario_id", None)
+        return None
+    return u
+
+
+def _ativa(u):
+    try:
+        return u["ativo"] is None or int(u["ativo"]) == 1
+    except (KeyError, IndexError):
+        return True
 
 
 def login_required(f):
@@ -224,9 +239,13 @@ def api_admin_required(f):
         auth = request.headers.get("Authorization", "")
         token = auth[7:] if auth.startswith("Bearer ") else ""
         claims = api_auth.verificar_token(token)
-        if not claims or claims.get("papel") != "admin":
+        # O token vale 30 dias, mas NÃO carrega a autorização: a conta é relida
+        # a cada chamada. Desativada ou rebaixada de admin, o token para na hora.
+        conta = db.query("SELECT * FROM usuarios WHERE id = ?", (claims.get("uid"),), one=True) if claims else None
+        if not conta or not _ativa(conta) or conta["papel"] != "admin":
             return jsonify({"erro": "não autorizado"}), 401
         g.api_usuario = claims
+        g.api_conta = conta
         return f(*a, **kw)
     return wrapper
 
@@ -916,31 +935,112 @@ def admin_avaliacao(aid, acao):
     return redirect(url_for("admin_painel"))
 
 
+# ---------------------------------------------------------------- equipe admin
+# Régua de 04/11/2026: ninguém age em nome de outra pessoa. Admin NÃO cria
+# conta com senha que ele digitou, não define nem vê senha de ninguém (nem de
+# outro admin). Quem vai ser admin cria a PRÓPRIA conta em /conta/cadastro,
+# com a própria senha; aqui o admin só PROMOVE essa conta, rebaixa, desativa
+# ou reativa — e cada mudança vai para o histórico com antes e depois.
+# O sistema não envia e-mail, então não há "pedir redefinição de senha".
+
+_CONTA_PUBLICA = "id, nome, email, papel, ativo, criado_em"
+
+
+def _conta(uid, t=None):
+    sql = f"SELECT {_CONTA_PUBLICA} FROM usuarios WHERE id = ?"
+    return t.query(sql, (uid,), one=True) if t else db.query(sql, (uid,), one=True)
+
+
+def _admins_ativos_alem(uid):
+    r = db.query("SELECT COUNT(*) AS n FROM usuarios WHERE papel = 'admin' AND COALESCE(ativo, 1) = 1 AND id <> ?",
+                 (uid,), one=True)
+    return int(r["n"])
+
+
 @app.route("/admin/convidar", methods=["GET", "POST"])
 @admin_required
 def admin_convidar():
+    eu = usuario_atual()
     if request.method == "POST":
-        f = request.form
-        nome = f.get("nome", "").strip()
-        email = f.get("email", "").strip().lower()
-        senha = f.get("senha", "")
-        if not (nome and email and senha):
-            flash("Preencha nome, e-mail e senha.", "erro")
+        email = request.form.get("email", "").strip().lower()
+        alvo = db.query(f"SELECT {_CONTA_PUBLICA} FROM usuarios WHERE email = ?", (email,), one=True) if email else None
+        if not alvo:
+            flash("Não há conta com esse e-mail. Peça à pessoa que crie a dela em “Criar conta” (com a senha dela) e volte aqui.", "erro")
             return redirect(url_for("admin_convidar"))
-        if len(senha) < 6:
-            flash("A senha precisa ter ao menos 6 caracteres.", "erro")
+        if alvo["papel"] == "admin":
+            flash(f"{alvo['email']} já é admin.", "erro")
             return redirect(url_for("admin_convidar"))
-        if db.query("SELECT 1 FROM usuarios WHERE email = ?", (email,), one=True):
-            flash("Já existe uma conta com esse e-mail.", "erro")
+        if alvo["papel"] != "cliente":
+            flash("Só conta pessoal (de cliente) vira admin. Conta de prestador é do cadastro da empresa: a pessoa cria uma conta pessoal com outro e-mail.", "erro")
             return redirect(url_for("admin_convidar"))
-        db.execute(
-            "INSERT INTO usuarios (nome, email, senha_hash, papel) VALUES (?,?,?, 'admin')",
-            (nome, email, generate_password_hash(senha)),
-        )
-        flash(f"Admin {nome} criado — já pode entrar em /entrar com esse e-mail.", "ok")
+        if not _ativa(alvo):
+            flash("Essa conta está desativada. Reative antes de promover.", "erro")
+            return redirect(url_for("admin_convidar"))
+        with db.transacao() as t:
+            t.execute("UPDATE usuarios SET papel = 'admin' WHERE id = ?", (alvo["id"],))
+            historico.registrar(t, tabela="usuarios", registro_id=alvo["id"], operacao="promover_admin",
+                                antes=dict(alvo), depois=dict(_conta(alvo["id"], t)), usuario=eu,
+                                rota="POST /admin/convidar")
+        flash(f"{alvo['nome'] or alvo['email']} agora é admin — entra com o e-mail e a senha que ela mesma criou.", "ok")
         return redirect(url_for("admin_convidar"))
-    admins = db.query("SELECT nome, email, criado_em FROM usuarios WHERE papel = 'admin' ORDER BY criado_em")
-    return render_template("admin_convidar.html", admins=admins)
+    admins = db.query(f"SELECT {_CONTA_PUBLICA} FROM usuarios WHERE papel = 'admin' ORDER BY COALESCE(ativo, 1) DESC, criado_em")
+    return render_template("admin_convidar.html", admins=admins, eu=eu)
+
+
+@app.route("/admin/conta/<int:uid>/<acao>", methods=["POST"])
+@admin_required
+def admin_conta(uid, acao):
+    if acao not in ("desativar", "reativar", "rebaixar"):
+        abort(404)
+    eu = usuario_atual()
+    alvo = _conta(uid)
+    if not alvo:
+        abort(404)
+    if acao in ("desativar", "rebaixar") and alvo["id"] == eu["id"]:
+        flash("Você não pode desativar nem rebaixar a sua própria conta.", "erro")
+        return redirect(url_for("admin_convidar"))
+    if acao in ("desativar", "rebaixar") and alvo["papel"] == "admin" and _admins_ativos_alem(alvo["id"]) == 0:
+        flash("Essa é a única conta de admin ativa. Promova outra antes.", "erro")
+        return redirect(url_for("admin_convidar"))
+    if acao == "rebaixar" and alvo["papel"] != "admin":
+        flash("Essa conta não é admin.", "erro")
+        return redirect(url_for("admin_convidar"))
+    sql = {"desativar": "UPDATE usuarios SET ativo = 0 WHERE id = ?",
+           "reativar": "UPDATE usuarios SET ativo = 1 WHERE id = ?",
+           "rebaixar": "UPDATE usuarios SET papel = 'cliente' WHERE id = ?"}[acao]
+    with db.transacao() as t:
+        t.execute(sql, (uid,))
+        historico.registrar(t, tabela="usuarios", registro_id=uid, operacao=acao, antes=dict(alvo),
+                            depois=dict(_conta(uid, t)), usuario=eu, rota=f"POST /admin/conta/{uid}/{acao}")
+    msg = {"desativar": "desativada — saiu de todos os aparelhos e o token do conector parou",
+           "reativar": "reativada", "rebaixar": "deixou de ser admin (virou conta pessoal)"}[acao]
+    flash(f"Conta de {alvo['nome'] or alvo['email']} {msg}.", "ok")
+    return redirect(url_for("admin_convidar"))
+
+
+# ---------------------------------------------------------------- histórico (só admin)
+
+@app.route("/admin/historico")
+@admin_required
+def admin_historico():
+    tabela = request.args.get("tabela", "").strip() or None
+    registro = request.args.get("registro", "").strip() or None
+    eventos = historico.listar(tabela=tabela, registro_id=registro, limite=300)
+    for e in eventos:  # texto legível (com acento), não o JSON escapado do |tojson
+        for k in ("antes", "depois"):
+            e[k + "_txt"] = json.dumps(e[k], ensure_ascii=False, default=str) if e[k] else ""
+    return render_template("admin_historico.html", eventos=eventos, tabela=tabela, registro=registro)
+
+
+@app.route("/api/historico")
+@api_admin_required
+def api_historico():
+    try:
+        limite = int(request.args.get("limite", 200))
+    except ValueError:
+        limite = 200
+    return jsonify(historico.listar(tabela=request.args.get("tabela") or None,
+                                    registro_id=request.args.get("registro") or None, limite=limite))
 
 
 @app.route("/admin/categoria/criar", methods=["POST"])
@@ -1039,10 +1139,22 @@ def admin_regiao_excluir(rid):
 @app.route("/admin/prestador/<int:pid>/excluir", methods=["POST"])
 @admin_required
 def admin_prestador_excluir(pid):
-    p = db.query("SELECT nome FROM prestadores WHERE id = ?", (pid,), one=True)
+    p = db.query("SELECT * FROM prestadores WHERE id = ?", (pid,), one=True)
     if not p:
         abort(404)
-    db.execute("DELETE FROM prestadores WHERE id = ?", (pid,))
+    # A exclusão segue física (o cadastro é do prestador), mas o retrato inteiro
+    # vai para o histórico ANTES, na mesma transação: dá para saber quem
+    # excluiu e refazer o cadastro, as fotos, as contas e as avaliações.
+    with db.transacao() as t:
+        antes = {
+            "prestador": dict(p),
+            "fotos": [dict(x) for x in t.query("SELECT * FROM prestador_fotos WHERE prestador_id = ?", (pid,))],
+            "contas": [dict(x) for x in t.query("SELECT id, nome, email, papel, criado_em FROM usuarios WHERE prestador_id = ?", (pid,))],
+            "avaliacoes": [dict(x) for x in t.query("SELECT * FROM avaliacoes WHERE prestador_id = ?", (pid,))],
+        }
+        historico.registrar(t, tabela="prestadores", registro_id=pid, operacao="excluir", antes=antes,
+                            usuario=usuario_atual(), rota=f"POST /admin/prestador/{pid}/excluir")
+        t.execute("DELETE FROM prestadores WHERE id = ?", (pid,))
     flash(f"Prestador '{p['nome']}' excluído.", "ok")
     return redirect(url_for("admin_painel"))
 
@@ -1392,6 +1504,9 @@ def erro_interno(e):
 
 # Inicialização executada tanto no dev server quanto sob gunicorn (--preload):
 # cria as tabelas e garante categorias/admin (idempotente).
+# Toda gravação (POST/PUT/PATCH/DELETE) vira evento no histórico, com a pessoa real.
+historico.instalar(app, usuario_atual)
+
 import seed  # noqa: E402
 seed.run()
 
