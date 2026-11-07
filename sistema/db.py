@@ -74,6 +74,22 @@ CREATE TABLE IF NOT EXISTS uso_diario (
     n      INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (dia, tipo, chave)
 );
+CREATE TABLE IF NOT EXISTS historico (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    tabela       TEXT NOT NULL,
+    registro_id  TEXT,
+    operacao     TEXT NOT NULL,
+    antes        TEXT,
+    depois       TEXT,
+    usuario_id   INTEGER,
+    usuario      TEXT,
+    origem       TEXT NOT NULL,
+    rota         TEXT,
+    status       INTEGER,
+    nota         TEXT,
+    quando       TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_historico_registro ON historico(tabela, registro_id);
 CREATE INDEX IF NOT EXISTS idx_prestadores_categoria ON prestadores(categoria_id);
 CREATE INDEX IF NOT EXISTS idx_avaliacoes_prestador ON avaliacoes(prestador_id);
 CREATE INDEX IF NOT EXISTS idx_avaliacoes_status ON avaliacoes(status);
@@ -141,6 +157,22 @@ CREATE TABLE IF NOT EXISTS uso_diario (
     n      INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (dia, tipo, chave)
 );
+CREATE TABLE IF NOT EXISTS historico (
+    id           SERIAL PRIMARY KEY,
+    tabela       TEXT NOT NULL,
+    registro_id  TEXT,
+    operacao     TEXT NOT NULL,
+    antes        TEXT,
+    depois       TEXT,
+    usuario_id   INTEGER,
+    usuario      TEXT,
+    origem       TEXT NOT NULL,
+    rota         TEXT,
+    status       INTEGER,
+    nota         TEXT,
+    quando       TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_historico_registro ON historico(tabela, registro_id);
 CREATE INDEX IF NOT EXISTS idx_prestadores_categoria ON prestadores(categoria_id);
 CREATE INDEX IF NOT EXISTS idx_avaliacoes_prestador ON avaliacoes(prestador_id);
 CREATE INDEX IF NOT EXISTS idx_avaliacoes_status ON avaliacoes(status);
@@ -157,7 +189,9 @@ _COLUNAS_NOVAS = {
     "prestadores": [("regiao_id", "INTEGER"), ("foto_url", "TEXT"),
                     # oferta/voucher criado pelo próprio prestador (validade em AAAA-MM-DD)
                     ("oferta_texto", "TEXT"), ("oferta_validade", "TEXT")],
-    "usuarios": [("nome", "TEXT"), ("aceite_termos_em", "TEXT"), ("aceite_termos_versao", "TEXT")],
+    "usuarios": [("nome", "TEXT"), ("aceite_termos_em", "TEXT"), ("aceite_termos_versao", "TEXT"),
+                 # conta desativada nao entra e cai na hora (app.usuario_atual); nada e apagado
+                 ("ativo", "INTEGER NOT NULL DEFAULT 1")],
     # as 5 métricas da avaliação (1 a 5); 'nota' continua sendo a média arredondada
     "avaliacoes": [("usuario_id", "INTEGER"), ("foto_url", "TEXT"),
                    ("m_atendimento", "INTEGER"), ("m_qualidade", "INTEGER"), ("m_seguranca", "INTEGER"),
