@@ -6,27 +6,22 @@ Diretório de obra de Mato Grosso: a pessoa descreve o problema como fala — �
 
 Uma iniciativa VZP Engenharia / Base Empreendimentos.
 
-**Importante antes de começar:** a raiz é a **vitrine pública**; o sistema com servidor mora em `sistema/`. A busca por linguagem do dia a dia funciona de verdade (1.054 termos informais, 132 de 132 casos de teste passando), mas não há banco de dados aqui: as fichas de prestador exibidas são **exemplos fictícios** de como o cadastro vai aparecer. As fichas reais e as avaliações vêm do sistema com servidor (ver “Próximos passos”).
+**Importante antes de começar:** a raiz é a **vitrine pública**; o sistema com servidor mora no repositório privado `vzp-engenharia/construir-reformar-sistema` (separado em 08/11/2026). A busca por linguagem do dia a dia funciona de verdade (1.054 termos informais, 132 de 132 casos de teste passando), mas não há banco de dados aqui: as fichas de prestador exibidas são **exemplos fictícios** de como o cadastro vai aparecer. As fichas reais e as avaliações vêm do sistema com servidor (ver “Próximos passos”).
 
 ## O que tem em cada arquivo
 
 ```
 construir-reformar/
 ├── index.html          → o site inteiro (HTML + CSS + JavaScript em um único arquivo)
-├── dados.js            → taxonomia e motor de busca por sinônimos (gerado por motor/gen_js.py)
+├── dados.js            → taxonomia e motor de busca por sinônimos (gerado pelo motor/gen_js.py do repo privado)
 ├── config.js           → ÚNICO arquivo a editar: canal de cadastro e lista de fichas reais
-├── INTEGRACAO.md       → como a vitrine se liga ao sistema Flask
-├── LANCAMENTO.md       → roteiro de abertura: quem faz o quê, em que ordem
+├── LICENCA.md          → direitos reservados: código, visual e acervo (VZP Engenharia)
 ├── privacidade.html    → o que a vitrine coleta (nada) e o que fica no aparelho
 ├── 404.html            → página de endereço inexistente, com volta ao início
 ├── fonts/              → Outfit, Plus Jakarta Sans e Space Grotesk servidas pelo próprio site (licença OFL)
 ├── manifest.json       → ficha de identidade do app para o sistema poder "instalá-lo"
 ├── service-worker.js   → permite abrir o app já instalado mesmo sem internet
 ├── icons/              → ícone do app em todos os tamanhos + imagem de compartilhamento (og-image)
-├── motor/gen_js.py     → gera o topo do dados.js a partir da taxonomia única, que mora em
-│                         sistema/categorias-agrupadas.json (a mesma do cadastro)
-├── sistema/          → o sistema Flask + Postgres (cadastro, login, painel, moderação, API do conector).
-│                         Publica no Cloud Run a partir desta pasta — ver sistema/DEPLOY.md
 ├── package.json        → atalhos para rodar localmente e testar a busca (não é obrigatório)
 ├── _config.yml         → tira sistema/, motor/ e as notas internas do site publicado
 ├── robots.txt
@@ -51,9 +46,9 @@ python3 -m http.server 5173
 
 Depois abra `http://localhost:5173`.
 
-**Testar o motor de busca:** `python3 sistema/teste_busca.py` (ou `npm test`, que também confere se o `dados.js` está em dia com a taxonomia).
+**Testar o motor de busca:** no repo privado, `python3 teste_busca.py`.
 
-**Mudou uma categoria ou um sinônimo?** Edite só `sistema/categorias-agrupadas.json` e rode `python3 motor/gen_js.py`. Vitrine e cadastro passam a usar a mesma lista.
+**Mudou uma categoria ou um sinônimo?** Edite só `categorias-agrupadas.json` no repo privado e rode lá `python3 motor/gen_js.py ../construir-reformar/dados.js`. Vitrine e cadastro passam a usar a mesma lista.
 
 ## Ligar o cadastro
 
@@ -71,7 +66,7 @@ Com os três vazios, o botão aparece desativado com a nota “Os cadastros abre
 
 `prestadoresUrl` no `config.js` aponta para uma lista JSON de prestadores. Com ela, as
 fichas de exemplo somem e entram as reais; se o servidor não responder, o site segue com
-os exemplos. O formato e uma rota pronta para o Flask estão em **INTEGRACAO.md** — testada
+os exemplos. O formato e uma rota pronta para o Flask estão no `docs/INTEGRACAO.md` do repo privado — testada
 contra o sistema real: 12 de 12 prestadores carregados, busca “luz” abrindo Elétrica Sorriso.
 
 ## Como a busca leva até o prestador
@@ -107,7 +102,7 @@ terceiros: fontes, ícones e scripts vêm do próprio endereço. Detalhes em `pr
 
 Em ordem de prioridade:
 
-1. **Abrir** — seguir o **LANCAMENTO.md**: o PR #3 do sistema já está em `sistema/`; faltam variáveis e Postgres no Cloud Run, uma linha (`sistemaUrl`) no `config.js` e a liberação.
+1. **Abrir** — seguir o `docs/LANCAMENTO.md` do repo privado; faltam variáveis e Postgres no Cloud Run, uma linha (`sistemaUrl`) no `config.js` e a liberação.
 3. **Avaliação em 5 métricas** — Atendimento, Qualidade e quantidade, Inspeção e segurança, Resolveu a demanda, Indicaria. O layout está pronto; a gravação e a moderação são do servidor.
 4. **Domínio próprio** — e, com ele, o endereço absoluto da imagem de compartilhamento (`og:image`) para o link ficar bonito no WhatsApp.
 5. **Termos de uso e política de privacidade (LGPD)** — obrigatórios antes de publicar dados de pessoas reais.
