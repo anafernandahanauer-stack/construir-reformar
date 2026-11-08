@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npx --yes serve . -l 5173",
     "dev": "npx --yes serve . -l 5173",
-    "test": "python3 sistema/teste_busca.py && python3 motor/gen_js.py --check"
+    "test": "echo \"testes da busca e do gerador moram no repo privado construir-reformar-sistema\""
   },
   "license": "UNLICENSED"
 }
