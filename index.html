@@ -1125,7 +1125,7 @@ function cardHTML(p){
   const redes=[
     p.email?['mail','E-mail','mailto:'+p.email]:null,
     p.insta?['insta','Instagram','https://instagram.com/'+p.insta]:null,
-    p.linkedin?['in','LinkedIn','https://linkedin.com/company/'+p.linkedin]:null,
+    p.linkedin?['in','LinkedIn','https://www.linkedin.com/'+(p.linkedin.includes('/')?p.linkedin:'company/'+p.linkedin)]:null,
     p.site?['site','Website','https://'+p.site]:null,
   ].filter(Boolean).map(([ic,rot,href])=>
     '<a class="rede" href="'+esc(href)+'" rel="noopener">'+IC[ic]+esc(rot)+'</a>'
