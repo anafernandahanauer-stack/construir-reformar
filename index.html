@@ -421,6 +421,7 @@ function tema(){
   .rede:hover{border-color:var(--azul);background:var(--papel2);transform:translateY(-1px)}
   .rede:active{transform:translateY(0) scale(.98)}
   .rede svg{flex:0 0 auto}
+  .melhoria-rodape{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;margin-top:14px}
   /* card de vaga aberta: mesma moldura, tom de convite */
   .card.vaga{border-top-color:var(--tenue);background:var(--papel2)}
   .card.vaga .card-t{color:var(--cinza)}
@@ -978,12 +979,21 @@ function tema(){
   © 2026 VZP Engenharia — Vitor Zanchet Pereira LTDA. Todos os direitos reservados.<br>
   Foco atual em Mato Grosso, com indicação de indústrias e projetistas de fora<br>
   <span style="color:var(--fraco)">Fichas marcadas como exemplo são ilustrativas.</span></p>
+  <p class="fnote melhoria-rodape">
+    <a class="rede" id="sugerir-melhoria" href="https://construir-reformar-898146672742.southamerica-east1.run.app/melhorias/nova">💡 Sugerir melhoria</a>
+    <span>Achou algo confuso ou quebrado? Conte — a equipe lê cada uma.</span></p>
 </footer>
 
 </div><!-- /canvas -->
 <a class="topo" id="topo" href="#" aria-label="Voltar ao topo" hidden>↑ Topo</a>
 
 <script src="config.js"></script>
+<script>
+// Botão de melhorias (regra da casa): vai para o formulário do sistema levando
+// esta página, para o "Voltar" de lá trazer a pessoa de volta para cá.
+(function(){var a=document.getElementById('sugerir-melhoria');var s=((window.CONFIG||{}).sistemaUrl||'').replace(/\/+$/,'');
+if(a&&s)a.href=s+'/melhorias/nova?de='+encodeURIComponent(location.href.split('#')[0]);})();
+</script>
 <script src="dados.js"></script>
 <script>
 function setq(t){document.getElementById('q').value=t;go()}
