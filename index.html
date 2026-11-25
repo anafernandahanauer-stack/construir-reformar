@@ -1030,6 +1030,22 @@ function evento(dados){
   if(!s||!navigator.sendBeacon)return;
   try{navigator.sendBeacon(s+'/api/vitrine/evento',new Blob([JSON.stringify(dados)],{type:'text/plain'}))}catch(e){}
 }
+// De onde veio (convites do WhatsApp e outras divulgações): o link traz
+// ?origem=nome; conta a chegada uma vez por visita, lembra a origem para os
+// toques de WhatsApp desta visita e tira o parâmetro do endereço, para quem
+// copiar o link daqui não somar de novo.
+const ORIGEM=(function(){
+  let o='';
+  try{
+    const u=new URL(location.href), q=(u.searchParams.get('origem')||'').toLowerCase();
+    if(/^[a-z0-9][a-z0-9-]{0,29}$/.test(q)){
+      o=q;
+      if(sessionStorage.getItem('cr_origem')!==q){sessionStorage.setItem('cr_origem',q);evento({tipo:'chegada',origem:q})}
+    }else{o=sessionStorage.getItem('cr_origem')||''}
+    if(u.searchParams.has('origem')){u.searchParams.delete('origem');history.replaceState(null,'',u.pathname+u.search+u.hash)}
+  }catch(e){}
+  return o;
+})();
 let medT=null, medUlt='';
 function medirBusca(q, vazio){
   clearTimeout(medT);
@@ -1040,7 +1056,7 @@ function medirBusca(q, vazio){
 }
 document.addEventListener('click',e=>{
   const a=e.target.closest&&e.target.closest('a.btn-whats[data-id]');
-  if(a) evento({tipo:'whatsapp',id:Number(a.dataset.id)});
+  if(a) evento(ORIGEM?{tipo:'whatsapp',id:Number(a.dataset.id),origem:ORIGEM}:{tipo:'whatsapp',id:Number(a.dataset.id)});
 });
 
 // grupos
